@@ -1,6 +1,6 @@
 {
   "name": "Intelli doc",
-  "description": "A Retrieval-Augmented Generation (RAG) assistant that answers questions based on your uploaded documents. Features local semantic search and Gemini AI.",
+  "description": "A sophisticated Document RAG Assistant with a dark aesthetic. Features local semantic search and Gemini-powered analysis.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }

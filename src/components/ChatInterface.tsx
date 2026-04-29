@@ -4,7 +4,9 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot, Loader2, Quote } from 'lucide-react';
+import { Bot, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Message, Chunk } from '../types';
 import { semanticSearch, generateAnswer } from '../lib/rag';
 import { motion, AnimatePresence } from 'motion/react';
@@ -104,21 +106,26 @@ export default function ChatInterface({ vectorStore }: ChatInterfaceProps) {
                 className="flex flex-col gap-4"
               >
                 <div className={cn(
-                  "font-serif transition-opacity",
-                  m.role === 'user' ? "text-2xl text-[var(--color-text-primary)] leading-relaxed" : "text-[15px] text-[var(--color-text-secondary)] leading-loose border-l-2 border-[var(--color-accent)] pl-8"
+                  m.role === 'user' ? "font-serif text-2xl text-[var(--color-text-primary)] leading-relaxed" : "font-sans text-[15px] text-[var(--color-text-secondary)] leading-loose border-l-2 border-[var(--color-accent)] pl-8 markdown-content"
                 )}>
-                  {m.content}
+                  {m.role === 'assistant' ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {m.content}
+                    </ReactMarkdown>
+                  ) : (
+                    m.content
+                  )}
                 </div>
 
                 {m.sources && m.sources.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-2 ml-8 opacity-60 hover:opacity-100 transition-opacity">
+                  <div className="flex flex-wrap gap-2 pt-2 ml-8">
                     {m.sources.map((source, idx) => (
                       <div 
                         key={source.id} 
-                        className="text-[10px] px-3 py-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded text-[var(--color-accent)] hover:border-[var(--color-accent)] transition-all cursor-help"
+                        className="text-[10px] px-3 py-1 bg-[var(--color-glass)] border border-[var(--color-border)] rounded text-[var(--color-accent)] hover:border-[var(--color-accent)]/50 transition-colors"
                         title={source.text}
                       >
-                        § REF-{idx} / {source.metadata.fileName}
+                        § {source.metadata.fileName}
                       </div>
                     ))}
                   </div>
@@ -162,7 +169,7 @@ export default function ChatInterface({ vectorStore }: ChatInterfaceProps) {
             </button>
           </form>
           <p className="mt-4 text-[9px] text-center uppercase tracking-widest text-[var(--color-text-secondary)] opacity-30">
-            Aether RAG Protocol v2.5 / Secure Neural Link
+            Intelli doc Terminal v2.5 / Secure Neural Link
           </p>
         </div>
       </div>

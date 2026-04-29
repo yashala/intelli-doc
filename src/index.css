@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@1,400;1,700&display=swap');
 @import "tailwindcss";
 
-
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
@@ -23,7 +22,7 @@
 }
 
 .section-label {
-  @apply text-[10px] uppercase tracking-[2px] text-[var(--color-text-secondary)] mb-2 block;
+  @apply text-[10px] uppercase tracking-[2px] text-[var(--color-text-secondary)] mb-2 block font-sans;
 }
 
 .doc-card {
@@ -36,5 +35,35 @@
 
 .status-dot {
   @apply w-1.5 h-1.5 bg-[#4CAF50] rounded-full;
+}
+
+.markdown-content p {
+  @apply mb-4 last:mb-0;
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+  @apply font-serif text-[var(--color-text-primary)] mb-3 mt-6 first:mt-0;
+}
+
+.markdown-content h2 { @apply text-lg; }
+.markdown-content h3 { @apply text-base; }
+
+.markdown-content ul, .markdown-content ol {
+  @apply mb-4 pl-5 list-outside;
+}
+
+.markdown-content ul { @apply list-disc; }
+.markdown-content ol { @apply list-decimal; }
+
+.markdown-content li {
+  @apply mb-1 last:mb-0;
+}
+
+.markdown-content strong {
+  @apply text-[var(--color-accent)] font-semibold;
+}
+
+.markdown-content code {
+  @apply bg-[var(--color-surface)] px-1 py-0.5 rounded font-mono text-[13px] border border-[var(--color-border)];
 }
 

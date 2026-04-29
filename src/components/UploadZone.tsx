@@ -4,8 +4,10 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, HardDrive } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
+// @ts-expect-error - Vite handles ?url suffix for assets
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
 import { chunkText, generateEmbeddings } from '../lib/rag';
 import { Chunk, DocumentState } from '../types';
 import { clsx, type ClassValue } from 'clsx';
@@ -15,39 +17,24 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// More robust worker setup for Vite/CDN
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+// PDF.js worker setup
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface UploadZoneProps {
   onIndexComplete: (chunks: Chunk[]) => void;
 }
 
-interface DetailedState extends DocumentState {
-  fileSize: string | null;
-  pages?: number;
-}
-
 export default function UploadZone({ onIndexComplete }: UploadZoneProps) {
-  const [state, setState] = useState<DetailedState>({
+  const [state, setState] = useState<DocumentState>({
     isProcessing: false,
     fileName: null,
     chunkCount: 0,
     error: null,
-    fileSize: null,
   });
 
-  const formatSize = (bytes: number) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  };
-
-  const extractTextFromPdf = async (file: File): Promise<{ text: string, pages: number }> => {
+  const extractTextFromPdf = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     let fullText = '';
     
     for (let i = 1; i <= pdf.numPages; i++) {
@@ -57,48 +44,31 @@ export default function UploadZone({ onIndexComplete }: UploadZoneProps) {
       fullText += pageText + '\n';
     }
     
-    return { text: fullText, pages: pdf.numPages };
+    return fullText;
   };
 
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setState({ 
-      isProcessing: true, 
-      fileName: file.name, 
-      chunkCount: 0, 
-      error: null, 
-      fileSize: formatSize(file.size),
-      pages: undefined
-    });
+    setState({ isProcessing: true, fileName: file.name, chunkCount: 0, error: null });
 
     try {
       let text = '';
-      let pages = 0;
-
       if (file.type === 'application/pdf') {
-        const result = await extractTextFromPdf(file);
-        text = result.text;
-        pages = result.pages;
+        text = await extractTextFromPdf(file);
       } else {
         text = await file.text();
-        pages = 1;
       }
 
       if (!text.trim()) {
-        throw new Error('Document is empty or has no extractable text layer.');
+        throw new Error('The document appears to be empty.');
       }
 
       const chunks = chunkText(text);
       const embeddedChunks = await generateEmbeddings(chunks, file.name);
       
-      setState(prev => ({ 
-        ...prev, 
-        isProcessing: false, 
-        chunkCount: embeddedChunks.length,
-        pages 
-      }));
+      setState(prev => ({ ...prev, isProcessing: false, chunkCount: embeddedChunks.length }));
       onIndexComplete(embeddedChunks);
     } catch (err) {
       console.error(err);
@@ -125,14 +95,14 @@ export default function UploadZone({ onIndexComplete }: UploadZoneProps) {
       <div 
         className={cn(
           "relative bg-[var(--color-glass)] border border-[var(--color-border)] rounded-lg p-6 transition-all group",
-          state.isProcessing ? "opacity-50 pointer-events-none" : "hover:border-[var(--color-accent)]/50 cursor-pointer"
+          state.isProcessing ? "opacity-50 pointer-events-none" : "hover:border-[var(--color-accent)]/50"
         )}
       >
         <input
           type="file"
           accept=".pdf,.txt,.md"
           onChange={handleFileUpload}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={state.isProcessing}
         />
         
@@ -144,13 +114,8 @@ export default function UploadZone({ onIndexComplete }: UploadZoneProps) {
             <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
               {state.fileName ? state.fileName : "Select Knowledge Source"}
             </p>
-            <p className="text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider flex items-center gap-2">
-              {state.chunkCount > 0 ? (
-                <>
-                  <CheckCircle2 className="w-3 h-3 text-green-500" />
-                  {state.chunkCount} Fragments indexed
-                </>
-              ) : "PDF, TXT, MD"}
+            <p className="text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider">
+              {state.chunkCount > 0 ? `${state.chunkCount} Fragments indexed` : "PDF, TXT, MD"}
             </p>
           </div>
         </div>
@@ -162,30 +127,7 @@ export default function UploadZone({ onIndexComplete }: UploadZoneProps) {
           <p className="text-[10px] font-mono uppercase tracking-tight">{state.error}</p>
         </div>
       )}
-
-      {state.fileName && !state.isProcessing && (
-        <div className="mt-6 pt-6 border-t border-[var(--color-border)]/50 space-y-4">
-          <span className="section-label">Metadata Analysis</span>
-          <div className="space-y-3 font-mono text-[11px]">
-            <div className="flex justify-between">
-              <span className="text-[var(--color-text-secondary)]">Resolution</span>
-              <span className="text-[var(--color-text-primary)] uppercase tracking-tighter">Vectorized</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[var(--color-text-secondary)]">File Weight</span>
-              <span className="text-[var(--color-text-primary)] uppercase tracking-tighter">{state.fileSize}</span>
-            </div>
-            {state.pages && (
-              <div className="flex justify-between">
-                <span className="text-[var(--color-text-secondary)]">Scope</span>
-                <span className="text-[var(--color-text-primary)] uppercase tracking-tighter">{state.pages} Pages</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-
 
