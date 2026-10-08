@@ -190,24 +190,46 @@ class Throttle:
         self.interval = 60.0 / rpm if rpm else 0.0
         self.last = 0.0
 
-    def wait(self) -> None:
+    def wait(self) -> float:
+        """Sleep if needed; return the milliseconds slept."""
         delay = self.last + self.interval - time.monotonic()
         if delay > 0:
             time.sleep(delay)
         self.last = time.monotonic()
+        return max(delay, 0.0) * 1000
 
 
 class ThrottledModel:
+    """Applies the throttle and records each wait, so it can be removed from stage latency.
+
+    The wait happens inside the workflow's generate/rewrite nodes; without this correction the
+    recorded generate latency would be mostly deliberate sleeping.
+    """
+
     def __init__(self, inner: AnswerModel, throttle: Throttle) -> None:
         self.inner, self.throttle, self.name = inner, throttle, inner.name
+        self.waits: list[tuple[str, float]] = []
 
     def answer(self, question: str, sources: list[Source]) -> ModelOutput:
-        self.throttle.wait()
+        self.waits.append(("generate", self.throttle.wait()))
         return self.inner.answer(question, sources)
 
     def rewrite(self, question: str) -> tuple[str, Usage]:
-        self.throttle.wait()
+        self.waits.append(("rewrite", self.throttle.wait()))
         return self.inner.rewrite(question)
+
+
+def remove_waits(timings: dict[str, float], waits: list[tuple[str, float]]) -> dict[str, float]:
+    """Subtract throttle waits from the stage they occurred in (n-th wait -> stage_n)."""
+    adjusted = dict(timings)
+    seen: dict[str, int] = {}
+    for stage, ms in waits:
+        index = seen.get(stage, 0)
+        seen[stage] = index + 1
+        key = f"{stage}_{index}"
+        if key in adjusted:
+            adjusted[key] = max(adjusted[key] - ms, 0.0)
+    return adjusted
 
 
 def is_quota_error(exc: BaseException) -> bool:
@@ -367,11 +389,16 @@ def run_question(
     doc_keys: dict[str, str],
     key_to_id: dict[str, str],
 ) -> dict[str, Any]:
-    totals = []
+    totals, waited = [], 0.0
+    throttled = workflow.model if isinstance(workflow.model, ThrottledModel) else None
     for _ in range(repeat):
+        if throttled:
+            throttled.waits.clear()
         start = time.perf_counter()
         result = workflow.run(q.question, tags=[run_id])
-        totals.append((time.perf_counter() - start) * 1000)
+        waits = throttled.waits[:] if throttled else []
+        waited = sum(ms for _, ms in waits)
+        totals.append((time.perf_counter() - start) * 1000 - waited)
     ok = (
         parse_ok(conn, q, key_to_id[q.expected_doc], cfg["chunker"])
         if q.answerable and q.expected_doc
@@ -414,8 +441,9 @@ def run_question(
             for c in result.citations
         ],
         "flagged_sources": result.flagged_sources,
-        "timings_ms": result.timings_ms,
+        "timings_ms": remove_waits(result.timings_ms, waits),
         "total_ms": totals,
+        "throttle_wait_ms": round(waited, 1),
         "usage": asdict(result.usage),
         "judge": verdict,
         "judge_usage": asdict(judge_usage),
