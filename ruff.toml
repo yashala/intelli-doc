@@ -4,3 +4,6 @@ target-version = "py312"
 [lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
 
+
+[lint.isort]
+known-first-party = ["intellidoc", "tests"]
