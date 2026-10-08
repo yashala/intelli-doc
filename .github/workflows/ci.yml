@@ -1,0 +1,111 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  FASTEMBED_CACHE_PATH: ${{ github.workspace }}/.cache/fastembed
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        image: pgvector/pgvector:0.8.1-pg16
+        env:
+          POSTGRES_USER: intellidoc
+          POSTGRES_PASSWORD: intellidoc
+          POSTGRES_DB: intellidoc_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U intellidoc" --health-interval 2s --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.13"
+      - uses: actions/cache@v4
+        with:
+          path: .cache/fastembed
+          key: fastembed-bge-small-minilm-v1
+      - run: uv sync --project api --frozen
+      - run: uv run --project api ruff check api evals
+      - run: uv run --project api ruff format --check api evals
+      - run: uv run --project api mypy --config-file api/pyproject.toml api/src api/tests evals/run.py evals/report.py evals/gate.py
+      - run: uv run pytest
+        working-directory: api
+        env:
+          TEST_DATABASE_URL: postgresql://intellidoc:intellidoc@localhost:5432/intellidoc_test
+
+  web:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  offline-eval:
+    # Deterministic benchmark with the extractive reader; fails on regressions vs the
+    # committed baseline (evals/baseline_offline.json). No API keys are used.
+    runs-on: ubuntu-24.04
+    needs: python
+    services:
+      db:
+        image: pgvector/pgvector:0.8.1-pg16
+        env:
+          POSTGRES_USER: intellidoc
+          POSTGRES_PASSWORD: intellidoc
+          POSTGRES_DB: intellidoc_eval
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U intellidoc" --health-interval 2s --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.13"
+      - uses: actions/cache@v4
+        with:
+          path: .cache/fastembed
+          key: fastembed-bge-small-minilm-v1
+      - run: uv sync --project api --frozen
+      - name: Run offline benchmark
+        env:
+          EVAL_DATABASE_URL: postgresql://intellidoc:intellidoc@localhost:5432/intellidoc_eval
+        run: uv run --project api python evals/run.py --llm offline --out /tmp/runs
+      - name: Regression gate
+        run: uv run --project api python evals/gate.py "$(ls -d /tmp/runs/* | tail -1)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: offline-eval
+          path: /tmp/runs
+
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.13"
+      - run: uv export --project api --frozen --no-hashes --no-dev > requirements.txt
+      - run: uvx pip-audit -r requirements.txt
+      - run: npm audit --omit=dev
+        working-directory: web

@@ -22,6 +22,7 @@ from typing import Any
 
 import psycopg
 import yaml
+from dotenv import load_dotenv
 from pgvector.psycopg import register_vector
 
 from intellidoc.answer.graph import AnswerWorkflow
@@ -180,6 +181,8 @@ def build_model(llm: str) -> AnswerModel:
 
 
 def main() -> None:
+    # LangSmith reads LANGSMITH_* from the process environment, not from pydantic settings.
+    load_dotenv(ROOT / ".env")
     parser = argparse.ArgumentParser()
     parser.add_argument("--llm", choices=["offline", "gemini"], default="offline")
     parser.add_argument("--configs", nargs="*", help="experiment names (default: all)")
