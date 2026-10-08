@@ -16,7 +16,7 @@ import pytesseract
 from numpy.typing import NDArray
 from PIL import Image
 
-from intellidoc.models import Element
+from intellidoc.models import Element, ElementKind
 
 DARK_THRESHOLD = 150
 MIN_OCR_CONFIDENCE = 30.0
@@ -208,6 +208,8 @@ def _paragraphs(
         if word.strip() and float(data["conf"][i]) >= MIN_OCR_CONFIDENCE:
             groups.setdefault((data["block_num"][i], data["par_num"][i]), []).append(i)
 
+    heights = [data["height"][i] for indices in groups.values() for i in indices]
+    typical = statistics.median(heights) if heights else 0
     out = []
     for indices in groups.values():
         lines: dict[int, list[str]] = {}
@@ -222,5 +224,8 @@ def _paragraphs(
             max(data["left"][i] + data["width"][i] for i in indices) * scale,
             max(data["top"][i] + data["height"][i] for i in indices) * scale,
         )
-        out.append((top, Element(page, "text", text, "ocr", bbox, statistics.fmean(conf)), conf))
+        # A one-line paragraph set in noticeably larger type is a heading.
+        larger = statistics.median(data["height"][i] for i in indices) >= 1.25 * typical
+        kind: ElementKind = "heading" if len(lines) == 1 and larger else "text"
+        out.append((top, Element(page, kind, text, "ocr", bbox, statistics.fmean(conf)), conf))
     return out

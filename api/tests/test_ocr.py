@@ -31,3 +31,20 @@ def test_scanned_grid_table_is_rebuilt_row_by_row() -> None:
         "| Branch | Loans |\n|---|---|\n| Cedar Hill | 88,210 |\n| Fox Run | 41,975 |"
     )
     assert confidence is not None and confidence > 50
+
+
+def test_larger_single_line_is_marked_as_heading() -> None:
+    page = Image.new("RGB", (2000, 1200), "white")
+    from PIL import ImageDraw, ImageFont
+
+    draw = ImageDraw.Draw(page)
+    draw.text((100, 100), "Imaging", fill="black", font=ImageFont.load_default(size=72))
+    for i, line in enumerate(
+        ["The linear ultrasound probe L12 was replaced", "under a service agreement."]
+    ):
+        draw.text((100, 300 + 60 * i), line, fill="black", font=ImageFont.load_default(size=40))
+    elements, _ = ocr.ocr_page(page, page=1, dpi=300)
+    assert [(e.kind, e.text.split()[0]) for e in elements] == [
+        ("heading", "Imaging"),
+        ("text", "The"),
+    ]

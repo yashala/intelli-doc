@@ -2,7 +2,7 @@
 
 `fixed` reproduces the original app's 1000/200 character window, but keeps page provenance
 so citations can be scored. `structure` follows the parsed layout: a chunk never mixes
-sections, tables and figure text stay whole, and each chunk carries a title/section header
+sections or pages, tables and figure text stay whole, and each chunk carries a title/section header
 that is prepended when embedding and indexing.
 """
 
@@ -60,7 +60,8 @@ def structure_chunks(doc_id: str, parsed: ParsedDocument, max_chars: int = 1200)
                 chunk = Chunk(doc_id, [element.page], element.kind, piece)
                 chunks.append(_finish(chunk, parsed, [element], section))
         else:
-            if buffer and sum(len(e.text) for e in buffer) + len(element.text) > max_chars:
+            too_long = sum(len(e.text) for e in buffer) + len(element.text) > max_chars
+            if buffer and (too_long or buffer[-1].page != element.page):
                 flush()
             buffer.append(element)
     flush()
