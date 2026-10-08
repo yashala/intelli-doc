@@ -20,6 +20,8 @@ from intellidoc.models import Element, ElementKind
 
 DARK_THRESHOLD = 150
 MIN_OCR_CONFIDENCE = 30.0
+MIN_PARAGRAPH_CONFIDENCE = 50.0
+MIN_HEADING_CONFIDENCE = 80.0
 # Grid acceptance checks for reconstructed tables.
 MAX_ROW_HEIGHT_IN = 0.6
 MIN_TABLE_CONFIDENCE = 60.0
@@ -240,8 +242,32 @@ def _paragraphs(
             max(data["left"][i] + data["width"][i] for i in indices) * scale,
             max(data["top"][i] + data["height"][i] for i in indices) * scale,
         )
-        # A one-line paragraph set in noticeably larger type is a heading.
+        mean_conf = statistics.fmean(conf)
+        if sum(ch.isalnum() for ch in text) < 3 or mean_conf < MIN_PARAGRAPH_CONFIDENCE:
+            continue  # specks, margin stamps, figure fragments
         larger = statistics.median(data["height"][i] for i in indices) >= 1.25 * typical
-        kind: ElementKind = "heading" if len(lines) == 1 and larger else "text"
-        out.append((top, Element(page, kind, text, "ocr", bbox, statistics.fmean(conf)), conf))
+        kind: ElementKind = (
+            "heading"
+            if len(lines) == 1 and _looks_like_heading(text, larger, mean_conf)
+            else "text"
+        )
+        out.append((top, Element(page, kind, text, "ocr", bbox, mean_conf), conf))
     return out
+
+
+def _looks_like_heading(text: str, larger: bool, confidence: float) -> bool:
+    """A heading is a clean line of real words, in larger type or short and all capitals.
+
+    On NASA TN D-233, size alone promoted equation numbers ("(1b)") and margin stamps
+    ("won th") to headings, splitting the document into tiny chunks, while the real headings
+    ("CONCLUDING REMARKS") are body-height capitals.
+    """
+    letters = [ch for ch in text if not ch.isspace()]
+    words = text.split()
+    clean = (
+        confidence >= MIN_HEADING_CONFIDENCE
+        and sum(ch.isalpha() for ch in letters) >= 0.7 * len(letters)
+        and any(len(w) >= 3 and w.isalpha() for w in words)
+    )
+    short_caps = text.isupper() and len(words) <= 8
+    return clean and (larger or short_caps)

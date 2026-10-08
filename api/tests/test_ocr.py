@@ -95,3 +95,18 @@ def test_table_without_row_rules_falls_back_to_text_ocr() -> None:
     text = " ".join(e.text for e in elements)
     assert "0 to 90" in text
     assert "270 to 360" in text
+
+
+@pytest.mark.parametrize(
+    ("text", "larger", "conf", "expected"),
+    [
+        ("CONCLUDING REMARKS", False, 95, True),  # body-height capitals
+        ("Imaging", True, 92, True),
+        ("(1b)", True, 90, False),  # equation number
+        ("won th", True, 60, False),  # margin stamp read as text
+        ("Oo ON", True, 85, False),
+        ("The satellite period in seconds is", False, 95, False),
+    ],
+)
+def test_heading_rules(text: str, larger: bool, conf: float, expected: bool) -> None:
+    assert ocr._looks_like_heading(text, larger, conf) is expected
