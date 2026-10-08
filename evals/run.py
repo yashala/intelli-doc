@@ -232,6 +232,18 @@ def remove_waits(timings: dict[str, float], waits: list[tuple[str, float]]) -> d
     return adjusted
 
 
+def load_prices() -> dict[str, dict[str, float]]:
+    prices: dict[str, dict[str, float]] = yaml.safe_load((ROOT / "evals/pricing.yaml").read_text())
+    return prices
+
+
+def cost_usd(usage: dict[str, int], model: str, prices: dict[str, dict[str, float]]) -> float:
+    if model not in prices:
+        raise SystemExit(f"no price for {model} in evals/pricing.yaml; refusing to run unbudgeted")
+    price = prices[model]
+    return (usage["input_tokens"] * price["input"] + usage["output_tokens"] * price["output"]) / 1e6
+
+
 def is_quota_error(exc: BaseException) -> bool:
     text = f"{type(exc).__name__} {exc}"
     return "429" in text or "RESOURCE_EXHAUSTED" in text or "ResourceExhausted" in text
@@ -266,6 +278,7 @@ def summarise_records(
         }
         summary["usage"] = asdict(usage)
         summary["judge_usage"] = asdict(judge_usage)
+        summary["cost_usd"] = round(sum(r.get("cost_usd", 0.0) for r in rows), 4)
         summary["by_category"] = by_category(scores)
         summary["config"] = cfg
         summaries[cfg["name"]] = summary
@@ -284,6 +297,9 @@ def main() -> None:
     parser.add_argument("--limit", type=int, help="first N questions only (smoke runs)")
     parser.add_argument("--rpm", type=float, help="max model requests per minute")
     parser.add_argument("--resume", help="continue an interrupted run directory")
+    parser.add_argument(
+        "--max-cost-usd", type=float, help="stop before estimated spend exceeds this (all sessions)"
+    )
     parser.add_argument("--reingest", action="store_true")
     parser.add_argument("--out", default=str(ROOT / "artifacts/runs"))
     args = parser.parse_args()
@@ -322,19 +338,31 @@ def main() -> None:
     records_path = out / "records.jsonl"
     existing = [json.loads(line) for line in records_path.open()] if records_path.exists() else []
     done = {(r["config"], r["question"]["id"]) for r in existing}
+    prices = load_prices()
+    for name in {model.name, judge.name if judge else model.name}:
+        cost_usd({"input_tokens": 0, "output_tokens": 0}, name, prices)  # fail fast if unpriced
+    spent = sum(r.get("cost_usd", 0.0) for r in existing)
+    per_question: list[float] = [r["cost_usd"] for r in existing if "cost_usd" in r]
+    stopped_on_budget = False
 
     pool = create_pool(url)
     retriever = Retriever(FastEmbedder(), Reranker(settings.reranker_model))
     stopped_on_quota = False
     with records_path.open("a") as records, pool.connection() as conn:
         for cfg in configs:
-            if stopped_on_quota:
+            if stopped_on_quota or stopped_on_budget:
                 break
             config = RetrievalConfig(cfg["chunker"], cfg["mode"], cfg["k"], cfg["candidates"])
             workflow = AnswerWorkflow(pool, retriever, model, config, cfg["min_similarity"])
             for q in questions:
                 if (cfg["name"], q.id) in done:
                     continue
+                # Leave headroom of the most expensive question so far (x2) before each call.
+                headroom = 2 * max(per_question, default=0.01)
+                if args.max_cost_usd is not None and spent + headroom > args.max_cost_usd:
+                    print(f"budget stop: spent ${spent:.4f} of ${args.max_cost_usd}")
+                    stopped_on_budget = True
+                    break
                 try:
                     record = run_question(
                         workflow,
@@ -354,6 +382,13 @@ def main() -> None:
                     print(f"quota exhausted at {cfg['name']} {q.id}: {type(exc).__name__}")
                     stopped_on_quota = True
                     break
+                record["cost_usd"] = round(
+                    cost_usd(record["usage"], model.name, prices)
+                    + cost_usd(record["judge_usage"], judge.name if judge else model.name, prices),
+                    6,
+                )
+                spent += record["cost_usd"]
+                per_question.append(record["cost_usd"])
                 records.write(json.dumps(record) + "\n")
                 records.flush()
             print(f"{cfg['name']}: done")
@@ -364,6 +399,8 @@ def main() -> None:
     expected = len(configs) * len(questions)
     env["complete"] = len(all_records) >= expected
     env["records"] = f"{len(all_records)}/{expected}"
+    env["cost_usd_total"] = round(sum(r.get("cost_usd", 0.0) for r in all_records), 4)
+    env["pricing"] = prices
     env["memory_at_end"] = memory_state()
     (out / "environment.json").write_text(json.dumps(env, indent=2) + "\n")
     (out / "summary.json").write_text(json.dumps(summaries, indent=2) + "\n")
@@ -372,7 +409,7 @@ def main() -> None:
             f"{name}: evidence_hit={sm['evidence_hit_rate']} answer_acc={sm['answer_accuracy']} "
             f"cit_prec={sm['citation_precision']} judge={sm['judge_grounded_rate']}"
         )
-    print(f"wrote {out} ({env['records']} records)")
+    print(f"wrote {out} ({env['records']} records, estimated ${env['cost_usd_total']})")
     if stopped_on_quota:
         print(f"resume with: evals/run.py --llm {args.llm} --judge --rpm {args.rpm} --resume {out}")
 
