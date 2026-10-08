@@ -13,6 +13,8 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql://intellidoc:intellidoc@localhost:5433/intellidoc"
     data_dir: Path = Path("data")
+    artifacts_dir: Path = Path("../artifacts")
+    cors_origins: list[str] = ["http://localhost:5173"]
     max_upload_mb: int = 25
 
     # "offline" uses a deterministic extractive model; no network or keys needed.
