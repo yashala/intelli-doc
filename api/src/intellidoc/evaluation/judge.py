@@ -30,13 +30,16 @@ class GeminiJudge:
         )
         self._structured = chat.with_structured_output(Verdict, include_raw=True)
 
-    def judge(self, question: str, answer: str, cited: list[str]) -> tuple[Verdict | None, Usage]:
+    def judge(
+        self, question: str, answer: str, cited: list[str], tags: list[str] | None = None
+    ) -> tuple[Verdict | None, Usage]:
         sources = "\n\n".join(f"<source>\n{text}\n</source>" for text in cited) or "(none)"
         result = self._structured.invoke(
             [
                 ("system", JUDGE_PROMPT),
                 ("human", f"Question: {question}\n\nAnswer: {answer}\n\nCited sources:\n{sources}"),
-            ]
+            ],
+            config={"run_name": "groundedness_judge", "tags": [JUDGE_VERSION, *(tags or [])]},
         )
         assert isinstance(result, dict)
         return result["parsed"], _usage(result["raw"])

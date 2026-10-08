@@ -388,7 +388,9 @@ def run_question(
     verdict, judge_usage = None, Usage()
     if judge and not result.refused:
         throttle.wait()
-        v, judge_usage = judge.judge(q.question, result.answer, [c.text for c in result.citations])
+        v, judge_usage = judge.judge(
+            q.question, result.answer, [c.text for c in result.citations], [run_id, cfg["name"]]
+        )
         verdict = v.model_dump() if v else None
     return {
         "config": cfg["name"],
