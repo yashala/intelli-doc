@@ -1,6 +1,0 @@
-{
-  "name": "Intelli doc",
-  "description": "A sophisticated Document RAG Assistant with a dark aesthetic. Features local semantic search and Gemini-powered analysis.",
-  "requestFramePermissions": [],
-  "majorCapabilities": []
-}
