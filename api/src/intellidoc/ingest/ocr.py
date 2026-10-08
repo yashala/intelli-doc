@@ -20,6 +20,10 @@ from intellidoc.models import Element, ElementKind
 
 DARK_THRESHOLD = 150
 MIN_OCR_CONFIDENCE = 30.0
+# Grid acceptance checks for reconstructed tables.
+MAX_ROW_HEIGHT_IN = 0.6
+MIN_TABLE_CONFIDENCE = 60.0
+MIN_FILLED_CELLS = 0.5
 
 BoolArray = NDArray[np.bool_]
 
@@ -45,25 +49,34 @@ def ocr_page(image: Image.Image, page: int, dpi: int) -> tuple[list[Element], fl
     elements: list[tuple[int, Element]] = []
     confidences: list[float] = []
 
-    grids = _find_grids(horizontal, vertical)
-    if grids:
-        text_layer = np.where(dark & ~(horizontal | vertical), 0, 255).astype(np.uint8)
-        for grid in grids:
-            text_layer[grid.top : grid.bottom + 1, :] = 255
-            markdown, cell_conf = _read_grid(gray, grid)
-            if markdown:
-                bbox = (
-                    grid.columns[0][0] * scale,
-                    grid.top * scale,
-                    grid.columns[-1][1] * scale,
-                    grid.bottom * scale,
-                )
-                mean = statistics.fmean(cell_conf) if cell_conf else None
-                elements.append((grid.top, Element(page, "table", markdown, "ocr", bbox, mean)))
-                confidences += cell_conf
-        source = Image.fromarray(text_layer)
-    else:
-        source = image
+    # Grid candidates are checked before they are trusted: page frames, margin stamps and
+    # tables without row rules also produce long lines (seen on NASA TN D-233 pages 1 and 26).
+    # A rejected candidate is left for paragraph OCR with its rules erased, because rules
+    # split Tesseract's layout into narrow strips (TN D-233 Table I was unreadable until then).
+    text_layer = gray.copy()
+    rules = horizontal | vertical
+    for grid in _find_grids(horizontal, vertical):
+        accepted = False
+        if max(y1 - y0 for y0, y1 in grid.rows) <= MAX_ROW_HEIGHT_IN * dpi:
+            markdown, cell_conf, filled = _read_grid(gray, grid)
+            mean = statistics.fmean(cell_conf) if cell_conf else 0.0
+            accepted = (
+                bool(markdown) and mean >= MIN_TABLE_CONFIDENCE and filled >= MIN_FILLED_CELLS
+            )
+        if not accepted:
+            region = text_layer[grid.top : grid.bottom + 1]
+            region[rules[grid.top : grid.bottom + 1]] = 255
+            continue
+        text_layer[grid.top : grid.bottom + 1, :] = 255
+        bbox = (
+            grid.columns[0][0] * scale,
+            grid.top * scale,
+            grid.columns[-1][1] * scale,
+            grid.bottom * scale,
+        )
+        elements.append((grid.top, Element(page, "table", markdown, "ocr", bbox, mean)))
+        confidences += cell_conf
+    source = Image.fromarray(text_layer)
 
     for top, element, conf in _paragraphs(source, page, scale):
         elements.append((top, element))
@@ -165,7 +178,8 @@ def _column_rules(band: BoolArray) -> list[tuple[int, int]]:
     return _clusters(band.mean(axis=0) > 0.5)
 
 
-def _read_grid(gray: NDArray[np.uint8], grid: Grid) -> tuple[str, list[float]]:
+def _read_grid(gray: NDArray[np.uint8], grid: Grid) -> tuple[str, list[float], float]:
+    """Return the table as Markdown, per-word confidences, and the fraction of filled cells."""
     table: list[list[str]] = []
     confidences: list[float] = []
     inset = 4
@@ -180,13 +194,15 @@ def _read_grid(gray: NDArray[np.uint8], grid: Grid) -> tuple[str, list[float]]:
             row.append(text)
             confidences += conf
         table.append(row)
+    cells = [cell for row in table for cell in row]
+    filled = sum(1 for cell in cells if cell) / len(cells) if cells else 0.0
     table = [row for row in table if any(row)]
     if not table:
-        return "", confidences
+        return "", confidences, filled
     header, *body = table
     lines = ["| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
     lines += ["| " + " | ".join(row) + " |" for row in body]
-    return "\n".join(lines), confidences
+    return "\n".join(lines), confidences, filled
 
 
 def _ocr_words(image: Image.Image, config: str) -> tuple[str, list[float]]:

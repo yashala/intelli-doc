@@ -48,3 +48,50 @@ def test_larger_single_line_is_marked_as_heading() -> None:
         ("heading", "Imaging"),
         ("text", "The"),
     ]
+
+
+def _page_with(draw_fn) -> Image.Image:  # type: ignore[no-untyped-def]
+    from PIL import ImageDraw
+
+    page = Image.new("L", (2550, 3300), 255)
+    draw_fn(ImageDraw.Draw(page))
+    return Image.merge("RGB", [page] * 3)
+
+
+def test_page_frame_is_not_mistaken_for_a_table() -> None:
+    # Regression: a scanned cover page's frame was read as a grid and its text discarded.
+    from PIL import ImageFont
+
+    def draw(d):  # type: ignore[no-untyped-def]
+        d.rectangle((150, 150, 2400, 3150), outline=0, width=4)
+        d.line((150, 2900, 2400, 2900), fill=0, width=4)
+        d.line((1300, 2900, 1300, 3150), fill=0, width=4)
+        d.text((400, 1200), "Langley Research Center", fill=0, font=ImageFont.load_default(60))
+
+    elements, _ = ocr.ocr_page(_page_with(draw), page=1, dpi=300)
+    assert not [e for e in elements if e.kind == "table"]
+    assert "Langley Research Center" in " ".join(e.text for e in elements)
+
+
+def test_table_without_row_rules_falls_back_to_text_ocr() -> None:
+    # Regression: TN D-233 Table I has a ruled box and header but no rules between rows.
+    from PIL import ImageFont
+
+    rows = [("N.", "NE.", "0 to 90"), ("S.", "SE.", "90 to 180"), ("N.", "NW.", "270 to 360")]
+
+    def draw(d):  # type: ignore[no-untyped-def]
+        font = ImageFont.load_default(44)
+        d.rectangle((300, 500, 2100, 1300), outline=0, width=4)
+        d.line((300, 620, 2100, 620), fill=0, width=4)
+        for x in (900, 1500):
+            d.line((x, 500, x, 1300), fill=0, width=4)
+        for x, title in ((340, "Latitude"), (940, "Direction"), (1540, "Azimuth")):
+            d.text((x, 540), title, fill=0, font=font)
+        for i, row in enumerate(rows):
+            for x, value in zip((340, 940, 1540), row, strict=True):
+                d.text((x, 680 + 90 * i), value, fill=0, font=font)
+
+    elements, _ = ocr.ocr_page(_page_with(draw), page=1, dpi=300)
+    text = " ".join(e.text for e in elements)
+    assert "0 to 90" in text
+    assert "270 to 360" in text
