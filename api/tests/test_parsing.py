@@ -103,3 +103,40 @@ def test_scan_with_existing_text_layer_is_reocrd(tmp_path: Path) -> None:
     joined = " ".join(e.text for e in parsed.elements)
     assert "AZIMUTH" in joined
     assert "AZIIvIUTH" not in joined
+
+
+def test_three_column_page_is_read_column_by_column(tmp_path: Path) -> None:
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.units import inch
+    from reportlab.platypus import BaseDocTemplate, Frame, FrameBreak, PageTemplate
+
+    w, h = LETTER
+    gap = 10  # points; IRS Pub 501 uses ~10pt gutters
+    col = (w - 2 * inch - 2 * gap) / 3
+    frames = [Frame(inch + i * (col + gap), inch, col, h - 2 * inch, 0, 0, 0, 0) for i in range(3)]
+    story = []
+    for name in ("First", "Second", "Third"):
+        story += [f.para(f"{name} column sentence {i} about deductions.") for i in range(8)]
+        story.append(FrameBreak())
+    path = tmp_path / "three.pdf"
+    BaseDocTemplate(str(path), pagesize=LETTER, pageTemplates=[PageTemplate(frames=frames)]).build(
+        story[:-1]
+    )
+    elements = [t for _, _, t in texts(path)]
+    joined = " ".join(elements)
+    assert joined.index("First column sentence 7") < joined.index("Second column sentence 0")
+    assert joined.index("Second column sentence 7") < joined.index("Third column sentence 0")
+    assert not any(sum(n in t for n in ("First", "Second", "Third")) > 1 for t in elements)
+
+
+def test_wrapped_bold_run_in_head_is_not_a_heading(tmp_path: Path) -> None:
+    path = f.build(
+        tmp_path / "runin.pdf",
+        [
+            f.para(
+                "<b>Taxpayer identification numbers for ali-<br/>ens.</b> If your dependent is a "
+                "resident alien, they need an ITIN."
+            )
+        ],
+    )
+    assert [k for _, k, _ in texts(path)] == ["text"]

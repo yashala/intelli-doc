@@ -30,7 +30,7 @@ SCAN_WITH_TEXT_LAYER_COVERAGE = 0.9
 # Embedded images smaller than this fraction of the page are not OCR'd (logos, bullets).
 MIN_IMAGE_AREA_FRACTION = 0.02
 OCR_DPI = 300
-GUTTER_MIN_WIDTH = 12.0  # points; inter-word spaces at body size are ~3pt
+GUTTER_MIN_WIDTH = 6.0  # points; word spaces are ~2-3pt, IRS Pub 501 gutters are ~10pt
 MIN_OCR_CONFIDENCE = 30.0
 
 
@@ -115,8 +115,8 @@ def _parse_native_page(
         for w in page.extract_words(extra_attrs=["size", "fontname"], keep_blank_chars=False)
         if not any(_inside(w, box) for box in table_boxes)
     ]
-    gutter = _find_gutter(words, float(page.width))
-    columns = [words] if gutter is None else _split_columns(words, gutter)
+    gutters = _find_gutters(words, float(page.width))
+    columns = _split_columns(words, gutters)
     for column_index, column_words in enumerate(columns):
         for element in _blocks(_lines(column_words), number, body_size):
             assert element.bbox is not None
@@ -136,7 +136,7 @@ def _parse_native_page(
         text, confidence = _ocr_text(crop)
         if len(text.split()) >= 2:
             bbox = (float(img["x0"]), float(img["top"]), float(img["x1"]), float(img["bottom"]))
-            column = 0 if gutter is None else int((img["x0"] + img["x1"]) / 2 > gutter)
+            column = _column_of((img["x0"] + img["x1"]) / 2, gutters)
             positioned.append(
                 (column, img["top"], Element(number, "image_text", text, "ocr", bbox, confidence))
             )
@@ -152,34 +152,47 @@ def _inside(word: dict[str, Any], box: tuple[float, float, float, float]) -> boo
     return bool(x0 <= cx <= x1 and top <= cy <= bottom)
 
 
-def _find_gutter(words: list[dict[str, Any]], width: float) -> float | None:
-    """Find a vertical whitespace band in the middle of the page that separates two columns.
+def _find_gutters(words: list[dict[str, Any]], width: float) -> list[float]:
+    """Find vertical whitespace bands that separate text columns.
 
-    Returns the x coordinate of the gutter centre, or None for single-column pages. A few
-    words may cross the gutter (full-width titles); more than 3% means it is not a gutter.
+    Returns gutter x positions (empty for single-column pages). A few words may cross a
+    gutter (running headers, full-width titles); more than 3% means it is not a gutter.
     The band must be wider than an inter-word space, otherwise aligned word gaps in a short
     single-column paragraph look like a gutter.
     """
-    half = GUTTER_MIN_WIDTH / 2
     if len(words) < 20:
-        return None
-    best: tuple[int, float] | None = None
-    for step in range(30, 71):
-        x = width * step / 100
+        return []
+    half = GUTTER_MIN_WIDTH / 2
+    valid: list[float] = []
+    for step in range(30, 171):  # 15% to 85% of the page width in 0.5% steps
+        x = width * step / 200
         crossing = sum(1 for w in words if w["x0"] < x + half and w["x1"] > x - half)
-        left = sum(1 for w in words if w["x1"] <= x)
-        right = len(words) - left - crossing
-        if min(left, right) < 0.2 * len(words):
-            continue
-        if crossing <= 0.03 * len(words) and (best is None or crossing < best[0]):
-            best = (crossing, x)
-    return None if best is None else best[1]
+        left = sum(1 for w in words if w["x1"] <= x - half)
+        right = sum(1 for w in words if w["x0"] >= x + half)
+        if crossing <= 0.03 * len(words) and min(left, right) >= 0.15 * len(words):
+            valid.append(x)
+    # Adjacent valid positions belong to the same whitespace band; use each band's centre.
+    gutters: list[float] = []
+    band: list[float] = []
+    for x in valid:
+        if band and x - band[-1] > width / 200 + 0.01:
+            gutters.append((band[0] + band[-1]) / 2)
+            band = []
+        band.append(x)
+    if band:
+        gutters.append((band[0] + band[-1]) / 2)
+    return gutters
 
 
-def _split_columns(words: list[dict[str, Any]], gutter: float) -> list[list[dict[str, Any]]]:
-    left = [w for w in words if (w["x0"] + w["x1"]) / 2 < gutter]
-    right = [w for w in words if (w["x0"] + w["x1"]) / 2 >= gutter]
-    return [left, right]
+def _column_of(x_center: float, gutters: list[float]) -> int:
+    return sum(1 for g in gutters if x_center >= g)
+
+
+def _split_columns(words: list[dict[str, Any]], gutters: list[float]) -> list[list[dict[str, Any]]]:
+    columns: list[list[dict[str, Any]]] = [[] for _ in range(len(gutters) + 1)]
+    for w in words:
+        columns[_column_of((w["x0"] + w["x1"]) / 2, gutters)].append(w)
+    return columns
 
 
 def _lines(words: list[dict[str, Any]], tolerance: float = 3.0) -> list[Line]:
@@ -207,6 +220,8 @@ def _lines(words: list[dict[str, Any]], tolerance: float = 3.0) -> list[Line]:
 
 
 def _is_heading_line(line: Line, body_size: float) -> bool:
+    if line.text.endswith("-"):  # a hyphenated break means a wrapped run-in head, not a heading
+        return False
     if line.size >= body_size * 1.2:
         return True
     return line.bold and len(line.text) < 80
