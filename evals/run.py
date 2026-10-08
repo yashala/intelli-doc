@@ -31,6 +31,8 @@ from intellidoc.answer.models import (
     AnswerModel,
     ExtractiveModel,
     GeminiModel,
+    ModelOutput,
+    Source,
     Usage,
 )
 from intellidoc.db import apply_schema, create_pool
@@ -39,6 +41,7 @@ from intellidoc.evaluation.judge import JUDGE_VERSION, GeminiJudge
 from intellidoc.evaluation.metrics import (
     ChunkRef,
     Question,
+    Score,
     by_category,
     contains_all,
     percentile,
@@ -180,6 +183,73 @@ def build_model(llm: str) -> AnswerModel:
     return GeminiModel(settings.answer_model, settings.google_api_key.get_secret_value())
 
 
+class Throttle:
+    """Space model calls to stay under a requests-per-minute limit (free API tiers)."""
+
+    def __init__(self, rpm: float | None) -> None:
+        self.interval = 60.0 / rpm if rpm else 0.0
+        self.last = 0.0
+
+    def wait(self) -> None:
+        delay = self.last + self.interval - time.monotonic()
+        if delay > 0:
+            time.sleep(delay)
+        self.last = time.monotonic()
+
+
+class ThrottledModel:
+    def __init__(self, inner: AnswerModel, throttle: Throttle) -> None:
+        self.inner, self.throttle, self.name = inner, throttle, inner.name
+
+    def answer(self, question: str, sources: list[Source]) -> ModelOutput:
+        self.throttle.wait()
+        return self.inner.answer(question, sources)
+
+    def rewrite(self, question: str) -> tuple[str, Usage]:
+        self.throttle.wait()
+        return self.inner.rewrite(question)
+
+
+def is_quota_error(exc: BaseException) -> bool:
+    text = f"{type(exc).__name__} {exc}"
+    return "429" in text or "RESOURCE_EXHAUSTED" in text or "ResourceExhausted" in text
+
+
+def summarise_records(
+    records: list[dict[str, Any]], configs: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Build per-config summaries from records.jsonl, so resumed runs summarise identically."""
+    summaries: dict[str, Any] = {}
+    for cfg in configs:
+        rows = [r for r in records if r["config"] == cfg["name"]]
+        if not rows:
+            continue
+        scores = [Score(**r["score"]) for r in rows]
+        latencies: dict[str, list[float]] = {"total": [ms for r in rows for ms in r["total_ms"]]}
+        for r in rows:
+            for stage, ms in r["timings_ms"].items():
+                latencies.setdefault(stage.rsplit("_", 1)[0], []).append(ms)
+        usage, judge_usage = Usage(), Usage()
+        for r in rows:
+            usage.add(Usage(**r["usage"]))
+            judge_usage.add(Usage(**r["judge_usage"]))
+        judged = [
+            r["judge"]["grounded"] for r in rows if r["judge"] and r["question"]["answerable"]
+        ]
+        summary = summarise(scores)
+        summary["judge_grounded_rate"] = round(sum(judged) / len(judged), 4) if judged else None
+        summary["latency_ms"] = {
+            stage: {"p50": percentile(v, 50), "p95": percentile(v, 95), "n": len(v)}
+            for stage, v in latencies.items()
+        }
+        summary["usage"] = asdict(usage)
+        summary["judge_usage"] = asdict(judge_usage)
+        summary["by_category"] = by_category(scores)
+        summary["config"] = cfg
+        summaries[cfg["name"]] = summary
+    return summaries
+
+
 def main() -> None:
     # LangSmith reads LANGSMITH_* from the process environment, not from pydantic settings.
     load_dotenv(ROOT / ".env")
@@ -190,6 +260,8 @@ def main() -> None:
     parser.add_argument("--repeat", type=int, default=1, help="runs per question for latency")
     parser.add_argument("--judge", action="store_true", help="LLM groundedness judge (online)")
     parser.add_argument("--limit", type=int, help="first N questions only (smoke runs)")
+    parser.add_argument("--rpm", type=float, help="max model requests per minute")
+    parser.add_argument("--resume", help="continue an interrupted run directory")
     parser.add_argument("--reingest", action="store_true")
     parser.add_argument("--out", default=str(ROOT / "artifacts/runs"))
     args = parser.parse_args()
@@ -202,121 +274,150 @@ def main() -> None:
     key_to_id = {key: doc_id for doc_id, key in doc_keys.items()}
 
     questions = load_questions(args.split)[: args.limit]
-    model = build_model(args.llm)
+    configs = load_configs(args.configs)
+    throttle = Throttle(args.rpm)
+    model: AnswerModel = build_model(args.llm)
+    if args.rpm:
+        model = ThrottledModel(model, throttle)
     judge = None
     if args.judge:
         if settings.google_api_key is None:
             raise SystemExit("--judge needs GOOGLE_API_KEY")
         judge = GeminiJudge(settings.judge_model, settings.google_api_key.get_secret_value())
 
-    run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ") + f"-{args.llm}"
-    out = Path(args.out) / run_id
-    out.mkdir(parents=True)
-    env = environment(args, model.name)
-    env["ingest"] = ingest_timings
+    if args.resume:
+        out = Path(args.resume)
+        env = json.loads((out / "environment.json").read_text())
+        env.setdefault("resumed_at", []).append(datetime.now(UTC).isoformat(timespec="seconds"))
+    else:
+        run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ") + f"-{args.llm}"
+        out = Path(args.out) / run_id
+        out.mkdir(parents=True)
+        env = environment(args, model.name)
+        env["ingest"] = ingest_timings
+    env["rpm_limit"] = args.rpm
     (out / "environment.json").write_text(json.dumps(env, indent=2) + "\n")
+    records_path = out / "records.jsonl"
+    existing = [json.loads(line) for line in records_path.open()] if records_path.exists() else []
+    done = {(r["config"], r["question"]["id"]) for r in existing}
 
     pool = create_pool(url)
     retriever = Retriever(FastEmbedder(), Reranker(settings.reranker_model))
-    summaries: dict[str, Any] = {}
-    with (out / "records.jsonl").open("w") as records, pool.connection() as conn:
-        for cfg in load_configs(args.configs):
+    stopped_on_quota = False
+    with records_path.open("a") as records, pool.connection() as conn:
+        for cfg in configs:
+            if stopped_on_quota:
+                break
             config = RetrievalConfig(cfg["chunker"], cfg["mode"], cfg["k"], cfg["candidates"])
             workflow = AnswerWorkflow(pool, retriever, model, config, cfg["min_similarity"])
-            scores, latencies, usage = [], {"total": []}, Usage()  # type: ignore[var-annotated]
-            judged: list[bool] = []
-            judge_usage = Usage()
             for q in questions:
-                for attempt in range(args.repeat):
-                    start = time.perf_counter()
-                    result = workflow.run(q.question, tags=[run_id])
-                    latencies["total"].append((time.perf_counter() - start) * 1000)
-                    for stage, ms in result.timings_ms.items():
-                        latencies.setdefault(stage.rsplit("_", 1)[0], []).append(ms)
-                    if attempt:
-                        continue
-                    usage.add(result.usage)
-                    ok = (
-                        parse_ok(conn, q, key_to_id[q.expected_doc], cfg["chunker"])
-                        if q.answerable and q.expected_doc
-                        else None
-                    )
-                    s = score(
+                if (cfg["name"], q.id) in done:
+                    continue
+                try:
+                    record = run_question(
+                        workflow,
+                        judge,
+                        throttle,
+                        conn,
                         q,
-                        [ChunkRef(doc_keys[r.doc_id], r.pages, r.text) for r in result.retrieved],
-                        [ChunkRef(doc_keys[c.doc_id], c.pages, c.text) for c in result.citations],
-                        result.answer,
-                        result.refused,
-                        ok,
+                        cfg,
+                        args.repeat,
+                        out.name,
+                        doc_keys,
+                        key_to_id,
                     )
-                    verdict = None
-                    if judge and not result.refused:
-                        v, used = judge.judge(
-                            q.question, result.answer, [c.text for c in result.citations]
-                        )
-                        judge_usage.add(used)
-                        verdict = v.model_dump() if v else None
-                        if v and q.answerable:
-                            judged.append(v.grounded)
-                    scores.append(s)
-                    records.write(
-                        json.dumps(
-                            {
-                                "config": cfg["name"],
-                                "question": asdict(q),
-                                "score": asdict(s),
-                                "answer": result.answer,
-                                "refusal_reason": result.refusal_reason,
-                                "queries": result.queries,
-                                "retrieved": [
-                                    {
-                                        "doc": doc_keys[r.doc_id],
-                                        "pages": r.pages,
-                                        "chunk_id": r.chunk_id,
-                                        "score": round(r.score, 4),
-                                        "similarity": round(r.similarity, 4),
-                                    }
-                                    for r in result.retrieved
-                                ],
-                                "citations": [
-                                    {
-                                        "doc": doc_keys[c.doc_id],
-                                        "pages": c.pages,
-                                        "chunk_id": c.chunk_id,
-                                    }
-                                    for c in result.citations
-                                ],
-                                "flagged_sources": result.flagged_sources,
-                                "timings_ms": result.timings_ms,
-                                "usage": asdict(result.usage),
-                                "judge": verdict,
-                            }
-                        )
-                        + "\n"
-                    )
-            summary = summarise(scores)
-            summary["judge_grounded_rate"] = round(sum(judged) / len(judged), 4) if judged else None
-            summary["latency_ms"] = {
-                stage: {"p50": percentile(v, 50), "p95": percentile(v, 95), "n": len(v)}
-                for stage, v in latencies.items()
-            }
-            summary["usage"] = asdict(usage)
-            summary["judge_usage"] = asdict(judge_usage)
-            summary["by_category"] = by_category(scores)
-            summary["config"] = cfg
-            summaries[cfg["name"]] = summary
-            print(
-                f"{cfg['name']}: evidence_hit={summary['evidence_hit_rate']} "
-                f"answer_acc={summary['answer_accuracy']} "
-                f"cit_prec={summary['citation_precision']} "
-                f"refusal={summary['correct_refusal_rate']} "
-                f"p50={summary['latency_ms']['total']['p50']}ms"
-            )
+                except Exception as exc:
+                    if not is_quota_error(exc):
+                        raise
+                    print(f"quota exhausted at {cfg['name']} {q.id}: {type(exc).__name__}")
+                    stopped_on_quota = True
+                    break
+                records.write(json.dumps(record) + "\n")
+                records.flush()
+            print(f"{cfg['name']}: done")
     pool.close()
+
+    all_records = [json.loads(line) for line in records_path.open()]
+    summaries = summarise_records(all_records, configs)
+    expected = len(configs) * len(questions)
+    env["complete"] = len(all_records) >= expected
+    env["records"] = f"{len(all_records)}/{expected}"
     env["memory_at_end"] = memory_state()
     (out / "environment.json").write_text(json.dumps(env, indent=2) + "\n")
     (out / "summary.json").write_text(json.dumps(summaries, indent=2) + "\n")
-    print(f"wrote {out}")
+    for name, sm in summaries.items():
+        print(
+            f"{name}: evidence_hit={sm['evidence_hit_rate']} answer_acc={sm['answer_accuracy']} "
+            f"cit_prec={sm['citation_precision']} judge={sm['judge_grounded_rate']}"
+        )
+    print(f"wrote {out} ({env['records']} records)")
+    if stopped_on_quota:
+        print(f"resume with: evals/run.py --llm {args.llm} --judge --rpm {args.rpm} --resume {out}")
+
+
+def run_question(
+    workflow: AnswerWorkflow,
+    judge: GeminiJudge | None,
+    throttle: Throttle,
+    conn: psycopg.Connection,
+    q: Question,
+    cfg: dict[str, Any],
+    repeat: int,
+    run_id: str,
+    doc_keys: dict[str, str],
+    key_to_id: dict[str, str],
+) -> dict[str, Any]:
+    totals = []
+    for _ in range(repeat):
+        start = time.perf_counter()
+        result = workflow.run(q.question, tags=[run_id])
+        totals.append((time.perf_counter() - start) * 1000)
+    ok = (
+        parse_ok(conn, q, key_to_id[q.expected_doc], cfg["chunker"])
+        if q.answerable and q.expected_doc
+        else None
+    )
+    s = score(
+        q,
+        [ChunkRef(doc_keys[r.doc_id], r.pages, r.text) for r in result.retrieved],
+        [ChunkRef(doc_keys[c.doc_id], c.pages, c.text) for c in result.citations],
+        result.answer,
+        result.refused,
+        ok,
+    )
+    verdict, judge_usage = None, Usage()
+    if judge and not result.refused:
+        throttle.wait()
+        v, judge_usage = judge.judge(q.question, result.answer, [c.text for c in result.citations])
+        verdict = v.model_dump() if v else None
+    return {
+        "config": cfg["name"],
+        "question": asdict(q),
+        "score": asdict(s),
+        "answer": result.answer,
+        "refusal_reason": result.refusal_reason,
+        "queries": result.queries,
+        "retrieved": [
+            {
+                "doc": doc_keys[r.doc_id],
+                "pages": r.pages,
+                "chunk_id": r.chunk_id,
+                "score": round(r.score, 4),
+                "similarity": round(r.similarity, 4),
+            }
+            for r in result.retrieved
+        ],
+        "citations": [
+            {"doc": doc_keys[c.doc_id], "pages": c.pages, "chunk_id": c.chunk_id}
+            for c in result.citations
+        ],
+        "flagged_sources": result.flagged_sources,
+        "timings_ms": result.timings_ms,
+        "total_ms": totals,
+        "usage": asdict(result.usage),
+        "judge": verdict,
+        "judge_usage": asdict(judge_usage),
+    }
 
 
 if __name__ == "__main__":
