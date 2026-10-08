@@ -25,6 +25,8 @@ from intellidoc.models import Element, PageInfo, ParsedDocument
 # is treated as scanned.
 SCANNED_MAX_CHARS = 25
 SCANNED_MIN_IMAGE_COVERAGE = 0.5
+# A raster image covering this much of the page means a scan even if it has a text layer.
+SCAN_WITH_TEXT_LAYER_COVERAGE = 0.9
 # Embedded images smaller than this fraction of the page are not OCR'd (logos, bullets).
 MIN_IMAGE_AREA_FRACTION = 0.02
 OCR_DPI = 300
@@ -67,11 +69,16 @@ def parse_pdf(path: Path) -> ParsedDocument:
 
 
 def _is_scanned(page: Any, native_chars: int) -> bool:
-    if native_chars >= SCANNED_MAX_CHARS:
-        return False
-    page_area = float(page.width * page.height)
-    covered = sum(_area(img) for img in page.images)
-    return covered / page_area >= SCANNED_MIN_IMAGE_COVERAGE
+    """A page is a scan if it is (almost) entirely one raster image.
+
+    Scans often carry an existing OCR text layer of unknown quality (NASA TN D-233 renders
+    "AZIMUTH" as "AZIIvIUTH"). Such layers are discarded and the page is re-OCR'd, so every
+    scanned page goes through the same OCR pipeline; `native_chars` records what was dropped.
+    """
+    coverage = sum(_area(img) for img in page.images) / float(page.width * page.height)
+    if coverage >= SCAN_WITH_TEXT_LAYER_COVERAGE:
+        return True
+    return native_chars < SCANNED_MAX_CHARS and coverage >= SCANNED_MIN_IMAGE_COVERAGE
 
 
 def _area(obj: dict[str, Any]) -> float:

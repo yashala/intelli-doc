@@ -76,3 +76,30 @@ def test_text_inside_embedded_image_is_extracted(tmp_path: Path) -> None:
     assert len(image_text) == 1
     assert "71" in image_text[0].text
     assert image_text[0].method == "ocr"
+
+
+def test_scan_with_existing_text_layer_is_reocrd(tmp_path: Path) -> None:
+    from PIL import Image, ImageDraw, ImageFont
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.utils import ImageReader
+    from reportlab.pdfgen import canvas
+
+    img = Image.new("RGB", (2550, 3300), "white")  # letter page at 300 dpi
+    ImageDraw.Draw(img).text(
+        (300, 400), "DETERMINATION OF AZIMUTH ANGLE", fill="black", font=ImageFont.load_default(70)
+    )
+    path = tmp_path / "layered.pdf"
+    c = canvas.Canvas(str(path), pagesize=LETTER)
+    c.drawImage(ImageReader(img), 0, 0, width=LETTER[0], height=LETTER[1])
+    legacy = c.beginText(72, 700)
+    legacy.setTextRenderMode(3)  # invisible, as legacy OCR layers are
+    legacy.textLine("DETERMINATION OF AZIIvIUTH ANGLE " * 3)
+    c.drawText(legacy)
+    c.save()
+
+    parsed = parse_pdf(path)
+    assert parsed.pages[0].method == "ocr"
+    assert parsed.pages[0].native_chars > 25
+    joined = " ".join(e.text for e in parsed.elements)
+    assert "AZIMUTH" in joined
+    assert "AZIIvIUTH" not in joined
