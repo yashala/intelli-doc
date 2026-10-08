@@ -1,0 +1,265 @@
+{
+  "timestamp": "2026-10-08T20:31:30+00:00",
+  "git_commit": "088212f3c940ec707675eae4cf9940e982a46bd8",
+  "git_dirty": true,
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu": "Apple M1",
+  "cpu_count": 8,
+  "memory_gb": 8.0,
+  "python": "3.12.14",
+  "tesseract": "tesseract 5.5.3",
+  "packages": {
+    "langgraph": "1.2.14",
+    "langchain-core": "1.6.8",
+    "langchain-google-genai": "4.4.0",
+    "fastembed": "0.9.0",
+    "pdfplumber": "0.11.10",
+    "pypdfium2": "5.14.0",
+    "pytesseract": "0.3.13",
+    "psycopg": "3.3.6",
+    "pgvector": "0.5.0",
+    "onnxruntime": "1.30.0"
+  },
+  "llm": "offline",
+  "answer_model": "offline-extractive",
+  "judge_model": null,
+  "prompt_version": "answer-v1",
+  "judge_version": null,
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "reranker_model": "Xenova/ms-marco-MiniLM-L-6-v2",
+  "memory_at_start": {
+    "swap": "total = 9216.00M  used = 7937.69M  free = 1278.31M  (encrypted)",
+    "docker_containers": [
+      "intelli-doc-db-1 79.91MiB / 3.827GiB",
+      "etl-sqlserver 1.465GiB / 3.827GiB"
+    ]
+  },
+  "split": "all",
+  "repeats": 1,
+  "corpus_manifest": {
+    "seed": 20261008,
+    "documents": [
+      {
+        "doc_id": "water_2025",
+        "file": "water_2025.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "93eadaafd646d5724b95c8d54a7e30ca543f46e6572859fc5812a3f96df73832"
+      },
+      {
+        "doc_id": "water_2024",
+        "file": "water_2024.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "40bcacdaca7cde1a1bfab19a0770e7bd2a5f91e35108a56c471f56ff5d13ef65"
+      },
+      {
+        "doc_id": "transit_tables",
+        "file": "transit_tables.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "0514a71a4281b63f423d55e0b7fe88e6c2e58d1394f4c3513ee19bb6d570886a"
+      },
+      {
+        "doc_id": "solar_figures",
+        "file": "solar_figures.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "867fd8581b98cdef71796b5ecaa99bfa9df0e33f59a6a9133aaeed8960d02e59"
+      },
+      {
+        "doc_id": "ferry_bulletin",
+        "file": "ferry_bulletin.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "ef85b923449f20c95beb0c4f830f0d06dbf02e26355e5051101541b609a6a1ad"
+      },
+      {
+        "doc_id": "vendor_guide",
+        "file": "vendor_guide.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "5b71604adadef82d2c173f33d5d047897f4b1a6eca1ebc1ce10908c983a1cb86"
+      },
+      {
+        "doc_id": "clinic_memo_scanned",
+        "file": "clinic_memo_scanned.pdf",
+        "synthetic": true,
+        "scanned": true,
+        "sha256": "5d7fc094851e7efee4164842903df9e90b5e62f659ae1a4d8239fddb3f687da4"
+      },
+      {
+        "doc_id": "library_scanned",
+        "file": "library_scanned.pdf",
+        "synthetic": true,
+        "scanned": true,
+        "sha256": "f5cbe64868f6bb30483ffa1930431d3f5400f04243358872b3e274d23af8824e"
+      }
+    ]
+  },
+  "real_sources": {
+    "retrieved": "2026-10-08",
+    "documents": [
+      {
+        "doc_id": "irs_p501_2025",
+        "file": "irs_p501_2025.pdf",
+        "title": "IRS Publication 501 (2025): Dependents, Standard Deduction, and Filing Information",
+        "url": "https://www.irs.gov/pub/irs-pdf/p501.pdf",
+        "publisher": "Internal Revenue Service",
+        "rights": "U.S. Government work, not subject to copyright in the U.S. (17 U.S.C. 105)",
+        "notes": "The URL is updated each tax year; the committed copy is the 2025 edition (Last-Modified 2026-02-05). Three-column layout with ruled tables.",
+        "sha256": "288b62a4917f3bc3df0bade7a22c23a8ae648ba9eb5086df5b8b50e881148ff6"
+      },
+      {
+        "doc_id": "nasa_tn_d233",
+        "file": "nasa_tn_d233.pdf",
+        "title": "NASA TN D-233: Determination of Azimuth Angle at Burnout for Placing a Satellite over a Selected Earth Position (Skopinski and Johnson, 1960)",
+        "url": "https://ntrs.nasa.gov/api/citations/19980227091/downloads/19980227091.pdf",
+        "publisher": "NASA Technical Reports Server",
+        "rights": "U.S. Government work, not subject to copyright in the U.S. (17 U.S.C. 105)",
+        "notes": "36-page scan; every page is a full-page image with a legacy OCR text layer.",
+        "sha256": "cdf51b23eab45d745cf45ab75786188da5ffe27a056acd2b5fe11b4121a106ac"
+      }
+    ]
+  },
+  "ingest": {
+    "clinic_memo_scanned": {
+      "pages": 3,
+      "ocr_pages": 3,
+      "chunks": {
+        "fixed": 1,
+        "structure": 3
+      },
+      "timings_ms": {
+        "parse": 4962.600915998337,
+        "embed_fixed": 611.6758339994703,
+        "embed_structure": 57.30908300029114
+      }
+    },
+    "ferry_bulletin": {
+      "pages": 2,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 1,
+        "structure": 5
+      },
+      "timings_ms": {
+        "parse": 587.8499579994241,
+        "embed_fixed": 48.55262500132085,
+        "embed_structure": 89.99579100054689
+      }
+    },
+    "library_scanned": {
+      "pages": 2,
+      "ocr_pages": 2,
+      "chunks": {
+        "fixed": 1,
+        "structure": 4
+      },
+      "timings_ms": {
+        "parse": 5226.741750000656,
+        "embed_fixed": 61.727625001367414,
+        "embed_structure": 61.71412500043516
+      }
+    },
+    "solar_figures": {
+      "pages": 3,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 1,
+        "structure": 7
+      },
+      "timings_ms": {
+        "parse": 915.9366249987215,
+        "embed_fixed": 40.60958400077652,
+        "embed_structure": 89.31404200120596
+      }
+    },
+    "transit_tables": {
+      "pages": 3,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 1,
+        "structure": 6
+      },
+      "timings_ms": {
+        "parse": 32.47491700312821,
+        "embed_fixed": 93.04016600071918,
+        "embed_structure": 173.11304100076086
+      }
+    },
+    "vendor_guide": {
+      "pages": 2,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 1,
+        "structure": 2
+      },
+      "timings_ms": {
+        "parse": 22.888540999701945,
+        "embed_fixed": 42.84191600163467,
+        "embed_structure": 51.16033399826847
+      }
+    },
+    "water_2024": {
+      "pages": 4,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 2,
+        "structure": 4
+      },
+      "timings_ms": {
+        "parse": 52.501333000691375,
+        "embed_fixed": 345.7717080018483,
+        "embed_structure": 166.02695799883804
+      }
+    },
+    "water_2025": {
+      "pages": 4,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 2,
+        "structure": 4
+      },
+      "timings_ms": {
+        "parse": 62.70233300165273,
+        "embed_fixed": 233.66837499997928,
+        "embed_structure": 168.02587500205846
+      }
+    },
+    "irs_p501_2025": {
+      "pages": 31,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 259,
+        "structure": 427
+      },
+      "timings_ms": {
+        "parse": 9287.97804200076,
+        "embed_fixed": 84096.55500000008,
+        "embed_structure": 123049.68520799957
+      }
+    },
+    "nasa_tn_d233": {
+      "pages": 36,
+      "ocr_pages": 36,
+      "chunks": {
+        "fixed": 37,
+        "structure": 54
+      },
+      "timings_ms": {
+        "parse": 93354.40545899837,
+        "embed_fixed": 8261.607791999268,
+        "embed_structure": 11253.942791001464
+      }
+    }
+  },
+  "memory_at_end": {
+    "swap": "total = 9216.00M  used = 8432.62M  free = 783.38M  (encrypted)",
+    "docker_containers": [
+      "intelli-doc-db-1 79.73MiB / 3.827GiB",
+      "etl-sqlserver 1.465GiB / 3.827GiB"
+    ]
+  }
+}

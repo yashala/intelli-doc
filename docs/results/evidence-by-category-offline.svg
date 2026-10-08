@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="538" height="330" font-family="sans-serif" font-size="11">
+<rect width="100%" height="100%" fill="white"/>
+<line x1="50" x2="528" y1="240" y2="240" stroke="#ddd"/>
+<text x="44" y="244" text-anchor="end">0%</text>
+<line x1="50" x2="528" y1="185.0" y2="185.0" stroke="#ddd"/>
+<text x="44" y="189.0" text-anchor="end">25%</text>
+<line x1="50" x2="528" y1="130.0" y2="130.0" stroke="#ddd"/>
+<text x="44" y="134.0" text-anchor="end">50%</text>
+<line x1="50" x2="528" y1="75.0" y2="75.0" stroke="#ddd"/>
+<text x="44" y="79.0" text-anchor="end">75%</text>
+<line x1="50" x2="528" y1="20.0" y2="20.0" stroke="#ddd"/>
+<text x="44" y="24.0" text-anchor="end">100%</text>
+<rect x="61.0" y="20.0" width="12" height="220.0" fill="#4c78a8"><title>c1-fixed-dense image: 100.0%</title></rect>
+<rect x="75.0" y="20.0" width="12" height="220.0" fill="#f58518"><title>c2-structure-dense image: 100.0%</title></rect>
+<rect x="89.0" y="20.0" width="12" height="220.0" fill="#54a24b"><title>c3-structure-hybrid image: 100.0%</title></rect>
+<rect x="103.0" y="20.0" width="12" height="220.0" fill="#b279a2"><title>c4-structure-hybrid-rerank image: 100.0%</title></rect>
+<text x="89.0" y="254" text-anchor="middle">image</text>
+<rect x="139.0" y="20.0" width="12" height="220.0" fill="#4c78a8"><title>c1-fixed-dense injection: 100.0%</title></rect>
+<rect x="153.0" y="20.0" width="12" height="220.0" fill="#f58518"><title>c2-structure-dense injection: 100.0%</title></rect>
+<rect x="167.0" y="20.0" width="12" height="220.0" fill="#54a24b"><title>c3-structure-hybrid injection: 100.0%</title></rect>
+<rect x="181.0" y="20.0" width="12" height="220.0" fill="#b279a2"><title>c4-structure-hybrid-rerank injection: 100.0%</title></rect>
+<text x="167.0" y="254" text-anchor="middle">injection</text>
+<rect x="217.0" y="20.0" width="12" height="220.0" fill="#4c78a8"><title>c1-fixed-dense mixed: 100.0%</title></rect>
+<rect x="231.0" y="20.0" width="12" height="220.0" fill="#f58518"><title>c2-structure-dense mixed: 100.0%</title></rect>
+<rect x="245.0" y="20.0" width="12" height="220.0" fill="#54a24b"><title>c3-structure-hybrid mixed: 100.0%</title></rect>
+<rect x="259.0" y="20.0" width="12" height="220.0" fill="#b279a2"><title>c4-structure-hybrid-rerank mixed: 100.0%</title></rect>
+<text x="245.0" y="254" text-anchor="middle">mixed</text>
+<rect x="295.0" y="44.44200000000001" width="12" height="195.558" fill="#4c78a8"><title>c1-fixed-dense native: 88.9%</title></rect>
+<rect x="309.0" y="44.44200000000001" width="12" height="195.558" fill="#f58518"><title>c2-structure-dense native: 88.9%</title></rect>
+<rect x="323.0" y="32.232" width="12" height="207.768" fill="#54a24b"><title>c3-structure-hybrid native: 94.4%</title></rect>
+<rect x="337.0" y="20.0" width="12" height="220.0" fill="#b279a2"><title>c4-structure-hybrid-rerank native: 100.0%</title></rect>
+<text x="323.0" y="254" text-anchor="middle">native</text>
+<rect x="373.0" y="43.166" width="12" height="196.834" fill="#4c78a8"><title>c1-fixed-dense scanned: 89.5%</title></rect>
+<rect x="387.0" y="66.31" width="12" height="173.69" fill="#f58518"><title>c2-structure-dense scanned: 79.0%</title></rect>
+<rect x="401.0" y="43.166" width="12" height="196.834" fill="#54a24b"><title>c3-structure-hybrid scanned: 89.5%</title></rect>
+<rect x="415.0" y="54.738" width="12" height="185.262" fill="#b279a2"><title>c4-structure-hybrid-rerank scanned: 84.2%</title></rect>
+<text x="401.0" y="254" text-anchor="middle">scanned</text>
+<rect x="451.0" y="70.77600000000001" width="12" height="169.224" fill="#4c78a8"><title>c1-fixed-dense table: 76.9%</title></rect>
+<rect x="465.0" y="20.0" width="12" height="220.0" fill="#f58518"><title>c2-structure-dense table: 100.0%</title></rect>
+<rect x="479.0" y="36.918000000000006" width="12" height="203.082" fill="#54a24b"><title>c3-structure-hybrid table: 92.3%</title></rect>
+<rect x="493.0" y="20.0" width="12" height="220.0" fill="#b279a2"><title>c4-structure-hybrid-rerank table: 100.0%</title></rect>
+<text x="479.0" y="254" text-anchor="middle">table</text>
+<rect x="50" y="265" width="10" height="10" fill="#4c78a8"/>
+<text x="65" y="274">c1-fixed-dense</text>
+<rect x="50" y="280" width="10" height="10" fill="#f58518"/>
+<text x="65" y="289">c2-structure-dense</text>
+<rect x="50" y="295" width="10" height="10" fill="#54a24b"/>
+<text x="65" y="304">c3-structure-hybrid</text>
+<rect x="50" y="310" width="10" height="10" fill="#b279a2"/>
+<text x="65" y="319">c4-structure-hybrid-rerank</text>
+</svg>

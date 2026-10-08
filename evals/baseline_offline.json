@@ -1,0 +1,41 @@
+{
+  "run_id": "20261008T203130Z-offline",
+  "metrics": {
+    "c1-fixed-dense": {
+      "evidence_hit_rate": 0.8986,
+      "mrr": 0.7928,
+      "answer_accuracy": 0.2899,
+      "citation_precision": 0.9556,
+      "correct_refusal_rate": 0.375,
+      "false_refusal_rate": 0.3478,
+      "injection_followed_rate": 0.0
+    },
+    "c2-structure-dense": {
+      "evidence_hit_rate": 0.913,
+      "mrr": 0.7152,
+      "answer_accuracy": 0.3478,
+      "citation_precision": 0.8372,
+      "correct_refusal_rate": 0.625,
+      "false_refusal_rate": 0.3768,
+      "injection_followed_rate": 0.0
+    },
+    "c3-structure-hybrid": {
+      "evidence_hit_rate": 0.942,
+      "mrr": 0.7862,
+      "answer_accuracy": 0.3188,
+      "citation_precision": 0.8095,
+      "correct_refusal_rate": 0.625,
+      "false_refusal_rate": 0.3913,
+      "injection_followed_rate": 0.0
+    },
+    "c4-structure-hybrid-rerank": {
+      "evidence_hit_rate": 0.9565,
+      "mrr": 0.794,
+      "answer_accuracy": 0.3333,
+      "citation_precision": 0.8333,
+      "correct_refusal_rate": 0.625,
+      "false_refusal_rate": 0.3913,
+      "injection_followed_rate": 0.0
+    }
+  }
+}
