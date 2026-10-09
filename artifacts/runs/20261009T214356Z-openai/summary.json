@@ -18,7 +18,7 @@
       "wrong_answer": 2,
       "missed_refusal": 5
     },
-    "judge_grounded_rate": 0.9403,
+    "judge_grounded_rate": 0.9701,
     "latency_ms": {
       "total": {
         "p50": 881.1,
@@ -47,11 +47,11 @@
       "calls": 115
     },
     "judge_usage": {
-      "input_tokens": 35385,
-      "output_tokens": 22328,
+      "input_tokens": 37497,
+      "output_tokens": 20276,
       "calls": 72
     },
-    "cost_usd": 0.1154,
+    "cost_usd": 0.1653,
     "by_category": {
       "image": {
         "questions": 6,
@@ -207,7 +207,7 @@
       "wrong_answer": 2,
       "missed_refusal": 1
     },
-    "judge_grounded_rate": 0.8333,
+    "judge_grounded_rate": 0.9848,
     "latency_ms": {
       "total": {
         "p50": 861.2,
@@ -236,11 +236,11 @@
       "calls": 125
     },
     "judge_usage": {
-      "input_tokens": 20627,
-      "output_tokens": 24910,
+      "input_tokens": 21973,
+      "output_tokens": 14319,
       "calls": 67
     },
-    "cost_usd": 0.0931,
+    "cost_usd": 0.1273,
     "by_category": {
       "image": {
         "questions": 6,
@@ -393,7 +393,7 @@
       "wrong_answer": 2,
       "retrieval_miss": 4
     },
-    "judge_grounded_rate": 0.8209,
+    "judge_grounded_rate": 1.0,
     "latency_ms": {
       "total": {
         "p50": 883.5,
@@ -422,11 +422,11 @@
       "calls": 121
     },
     "judge_usage": {
-      "input_tokens": 21459,
-      "output_tokens": 22492,
+      "input_tokens": 22849,
+      "output_tokens": 14028,
       "calls": 67
     },
-    "cost_usd": 0.095,
+    "cost_usd": 0.1287,
     "by_category": {
       "image": {
         "questions": 6,
@@ -580,7 +580,7 @@
       "missed_refusal": 3,
       "retrieval_miss": 2
     },
-    "judge_grounded_rate": 0.7681,
+    "judge_grounded_rate": 0.971,
     "latency_ms": {
       "total": {
         "p50": 3734.6,
@@ -609,11 +609,11 @@
       "calls": 111
     },
     "judge_usage": {
-      "input_tokens": 23450,
-      "output_tokens": 25866,
+      "input_tokens": 25009,
+      "output_tokens": 17103,
       "calls": 72
     },
-    "cost_usd": 0.0965,
+    "cost_usd": 0.137,
     "by_category": {
       "image": {
         "questions": 6,

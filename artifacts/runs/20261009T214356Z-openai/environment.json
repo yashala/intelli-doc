@@ -26,7 +26,7 @@
   "answer_model": "gpt-4.1-mini",
   "judge_model": "gpt-5-mini",
   "prompt_version": "answer-v1",
-  "judge_version": "judge-v1",
+  "judge_version": "judge-v2",
   "embedding_model": "BAAI/bge-small-en-v1.5",
   "reranker_model": "Xenova/ms-marco-MiniLM-L-6-v2",
   "memory_at_start": {
@@ -128,7 +128,7 @@
   "rpm_limit": null,
   "complete": true,
   "records": "340/340",
-  "cost_usd_total": 0.4,
+  "cost_usd_total": 0.5583,
   "pricing": {
     "gemini-2.5-flash": {
       "input": 0.3,
@@ -165,5 +165,11 @@
       "intelli-doc-db-1 80.34MiB / 3.827GiB",
       "etl-sqlserver 1.477GiB / 3.827GiB"
     ]
-  }
+  },
+  "rejudged": [
+    {
+      "from": "judge-v1",
+      "cost_usd": 0.1583
+    }
+  ]
 }

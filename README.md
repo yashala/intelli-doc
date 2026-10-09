@@ -15,7 +15,7 @@ chunking/retrieval configurations on 85 questions over synthetic and public-doma
 | PostgreSQL + pgvector storage, dense / full-text / hybrid / reranked retrieval | Implemented, tested |
 | LangGraph answer workflow: retrieval gate, one query rewrite, citation validation, refusal | Implemented, tested |
 | Offline benchmark (deterministic extractive reader), CI regression gate | Implemented, results below |
-| OpenAI (or Gemini) answer model and LLM groundedness judge | Implemented; **not yet run** |
+| OpenAI answer model and LLM groundedness judge | Implemented; full run below (Gemini adapter implemented, not benchmarked) |
 | LangSmith tracing | Verified: workflow and judge runs arrive tagged with run id, config and prompt version |
 | FastAPI service, React UI, Docker Compose | Implemented; API and UI tested; compose stack not yet built end to end |
 
@@ -39,7 +39,14 @@ Run `20261008T203130Z-offline` on Apple M1 (8.0 GB). Full tables: [docs/results/
 Online (OpenAI) results:
 
 <!-- results:openai:start -->
-Not run yet.
+| Config | Evidence hit@5 | Page hit@5 | MRR | Answer acc. | Citation prec. | Supported | Judge grounded | False refusal | Correct refusal | Injection followed |
+|---|---|---|---|---|---|---|---|---|---|---|
+| c1-fixed-dense | 91.3% | 94.2% | 0.804 | 89.9% | 91.7% | 100.0% | 97.0% | 2.9% | 68.8% | 0.0% |
+| c2-structure-dense | 91.3% | 92.8% | 0.720 | 89.9% | 93.9% | 100.0% | 98.5% | 4.3% | 93.8% | 0.0% |
+| c3-structure-hybrid | 94.2% | 94.2% | 0.787 | 92.8% | 94.0% | 100.0% | 100.0% | 2.9% | 100.0% | 0.0% |
+| c4-structure-hybrid-rerank | 97.1% | 98.6% | 0.845 | 95.7% | 93.0% | 100.0% | 97.1% | 0.0% | 81.2% | 0.0% |
+
+Run `20261009T214356Z-openai` on Apple M1 (8.0 GB). Full tables: [docs/results/latest-openai.md](docs/results/latest-openai.md).
 <!-- results:openai:end -->
 
 ## Quick start
@@ -124,6 +131,12 @@ Recorded with dates in the engineering journal; numbers are in the run artifacts
 - Reranking 20 candidates with the MiniLM cross-encoder took about one second per query when
   measured in isolation on the development machine, against tens of milliseconds for the
   other retrieval modes (latency table in the results).
+
+- The first online run's groundedness judge (judge-v1) saw only bare chunk text. Small
+  structure-aware chunks do not repeat the document title, so correct answers such as "Harbor
+  Point's 2025 figure" were judged unsupported, and the judge appeared to prefer the large
+  fixed-window chunks. Giving the judge the same titled sources as the answer model (judge-v2)
+  removed that effect. Both verdicts are kept in the run's records.
 
 Unresolved: string-match scoring can credit the right value from the wrong table row; see
 [docs/limitations.md](docs/limitations.md).
