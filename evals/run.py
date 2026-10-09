@@ -455,7 +455,10 @@ def run_question(
     if judge and not result.refused:
         throttle.wait()
         v, judge_usage = judge.judge(
-            q.question, result.answer, [c.text for c in result.citations], [run_id, cfg["name"]]
+            q.question,
+            result.answer,
+            [Source(c.label, c.title, c.pages, c.text) for c in result.citations],
+            [run_id, cfg["name"]],
         )
         verdict = v.model_dump() if v else None
     return {

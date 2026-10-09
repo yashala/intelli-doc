@@ -5,9 +5,12 @@ from __future__ import annotations
 from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel, Field
 
-from intellidoc.answer.models import Usage, _usage
+from intellidoc.answer.models import Source, Usage, _usage, format_sources
 
-JUDGE_VERSION = "judge-v1"
+# v2: the judge sees each source with its document title and pages, as the answer model does.
+# v1 passed bare chunk text, so facts identified only by the title (organisation, year) were
+# judged unsupported even when correct.
+JUDGE_VERSION = "judge-v2"
 
 JUDGE_PROMPT = """You check whether an answer is supported by the cited sources.
 
@@ -27,9 +30,9 @@ class ChatJudge:
         self._structured = chat.with_structured_output(Verdict, include_raw=True)
 
     def judge(
-        self, question: str, answer: str, cited: list[str], tags: list[str] | None = None
+        self, question: str, answer: str, cited: list[Source], tags: list[str] | None = None
     ) -> tuple[Verdict | None, Usage]:
-        sources = "\n\n".join(f"<source>\n{text}\n</source>" for text in cited) or "(none)"
+        sources = format_sources(cited) or "(none)"
         result = self._structured.invoke(
             [
                 ("system", JUDGE_PROMPT),
