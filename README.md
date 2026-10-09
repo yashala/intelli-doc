@@ -15,8 +15,8 @@ chunking/retrieval configurations on 85 questions over synthetic and public-doma
 | PostgreSQL + pgvector storage, dense / full-text / hybrid / reranked retrieval | Implemented, tested |
 | LangGraph answer workflow: retrieval gate, one query rewrite, citation validation, refusal | Implemented, tested |
 | Offline benchmark (deterministic extractive reader), CI regression gate | Implemented, results below |
-| Gemini answer model and LLM groundedness judge | Implemented; **not yet run** (needs `GOOGLE_API_KEY`) |
-| LangSmith tracing and experiments | Wired through env vars; **not yet verified** (needs `LANGSMITH_API_KEY`) |
+| OpenAI (or Gemini) answer model and LLM groundedness judge | Implemented; **not yet run** |
+| LangSmith tracing | Verified: workflow and judge runs arrive tagged with run id, config and prompt version |
 | FastAPI service, React UI, Docker Compose | Implemented; API and UI tested; compose stack not yet built end to end |
 
 ## Results
@@ -36,11 +36,11 @@ part. Definitions: [docs/evaluation.md](docs/evaluation.md).
 Run `20261008T203130Z-offline` on Apple M1 (8.0 GB). Full tables: [docs/results/latest-offline.md](docs/results/latest-offline.md).
 <!-- results:offline:end -->
 
-Online (Gemini) results:
+Online (OpenAI) results:
 
-<!-- results:gemini:start -->
+<!-- results:openai:start -->
 Not run yet.
-<!-- results:gemini:end -->
+<!-- results:openai:end -->
 
 ## Quick start
 
@@ -49,7 +49,8 @@ cp .env.example .env              # offline mode works with no changes
 docker compose up --build         # UI http://localhost:8080, API http://localhost:8000/health
 ```
 
-To answer with Gemini, set `LLM_MODE=gemini` and `GOOGLE_API_KEY` in `.env`. Keys stay in the
+To answer with an LLM, set `LLM_MODE=openai` and `OPENAI_API_KEY` (or `gemini` and
+`GOOGLE_API_KEY`) in `.env`. Keys stay in the
 API container; the browser only talks to the API.
 
 Reproduce the benchmark:
@@ -57,7 +58,7 @@ Reproduce the benchmark:
 ```bash
 make setup db
 make eval-offline report          # first run OCRs the 36-page scan; ingest is cached afterwards
-make eval-online report           # Gemini answers + judge; needs GOOGLE_API_KEY
+make eval-online report           # OpenAI answers + judge, stops before $5 of estimated spend
 ```
 
 ## How it works
@@ -66,7 +67,7 @@ make eval-online report           # Gemini answers + judge; needs GOOGLE_API_KEY
 flowchart LR
     PDF[PDF] --> PARSE[parse + OCR<br/>page provenance] --> CHUNK[chunk + flag] --> PG[(Postgres<br/>pgvector + tsvector)]
     Q[question] --> WF[LangGraph workflow] --> RET[dense / hybrid / rerank] --> PG
-    WF --> LLM[Gemini or offline reader] --> CITE[validate citations] --> A[answer or refusal]
+    WF --> LLM[OpenAI / Gemini or offline reader] --> CITE[validate citations] --> A[answer or refusal]
 ```
 
 Details: [docs/architecture.md](docs/architecture.md), decisions in [docs/adr/](docs/adr/).
@@ -94,16 +95,16 @@ each node becomes a separate traced span and routing is kept apart from node log
 state-reducer model to learn, and one real bug from it (routing functions that mutated state,
 which LangGraph discards; see ADR 0004).
 
-**LangChain** is used only for the Gemini adapter with structured output
+**LangChain** is used for the model adapters with structured output
 (`with_structured_output(AnswerDraft, include_raw=True)`), which validates the answer schema
-and keeps token usage. Its PDF loaders, text splitters and vector store are deliberately not
+and keeps token usage. Switching the benchmark from Gemini to OpenAI was a one-function change
+(`make_chat`), which is the concrete benefit of the abstraction here. Its PDF loaders, text splitters and vector store are deliberately not
 used: the loaders drop element-level page provenance and the vector store's schema conflicts
 with the per-strategy comparison (ADR 0001, 0003).
 
 **LangSmith** is optional. With `LANGSMITH_TRACING=true` and a key, every workflow run is traced
-with the retrieval configuration, model and prompt version as metadata. The offline benchmark
-and CI do not depend on it. This integration has not been verified against a live LangSmith
-project yet.
+with the retrieval configuration, model and prompt version as metadata, and judge calls are
+traced as `groundedness_judge`. The offline benchmark and CI do not depend on it.
 
 ## What the documents revealed
 

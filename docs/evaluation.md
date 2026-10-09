@@ -75,10 +75,11 @@ Each question gets at most one category, in this priority order:
 - `--llm offline`: `ExtractiveModel`, which returns the source sentence with the highest
   content-word overlap. Deterministic and network-free; used in CI. It measures the pipeline
   with a trivial reader, not LLM quality.
-- `--llm gemini`: Gemini through LangChain with structured output. Temperature 0, but provider
+- `--llm openai` (or `gemini`): the provider's chat model through LangChain with structured output.
+  The answer model (`gpt-4.1-mini`) runs at temperature 0, but provider
   outputs are not guaranteed deterministic; report the run id with any number.
-- `--judge`: adds the LLM groundedness judge. The judge uses a different Gemini model tier from
-  the answer model, but the same vendor; it may share blind spots with the answer model, which
+- `--judge`: adds the LLM groundedness judge. The judge (`gpt-5-mini`, a reasoning model) is a
+  different model from the answer model, but the same vendor; it may share blind spots with the answer model, which
   is why the deterministic supported rate is reported next to it.
 
 ## Known weaknesses of these metrics
@@ -96,6 +97,6 @@ Each question gets at most one category, in this priority order:
 docker compose up -d db
 make corpus           # regenerate synthetic PDFs (optional; committed copies are identical)
 make eval-offline     # all configs, offline model
-make eval-online      # needs GOOGLE_API_KEY in .env; add LANGSMITH_* to trace
+make eval-online      # needs OPENAI_API_KEY in .env; add LANGSMITH_* to trace; capped at $5
 make report           # rebuild docs/results from the latest run
 ```

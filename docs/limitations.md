@@ -11,7 +11,8 @@
 - **String-match scoring.** Evidence is matched by normalised substring. A different table row
   containing the same value counts as a hit (seen on NASA TN D-233 Table I). Paraphrased numbers
   count as wrong.
-- **Same-vendor judge.** The groundedness judge is a Gemini model grading Gemini answers.
+- **Same-vendor judge.** The groundedness judge (`gpt-5-mini`) is from the same vendor as the
+  answer model (`gpt-4.1-mini`); they may share blind spots.
 - **Heuristics tuned on this corpus.** The gutter width (6 pt), grid acceptance thresholds and
   scanned-page rules were set while looking at these documents. Their test-split numbers are
   therefore optimistic for unseen layouts.

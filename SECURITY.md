@@ -19,7 +19,7 @@ it to a network without adding authentication and the controls listed in
 
 ## Known gaps
 - PDF parsing runs in the API process with no sandbox, CPU or memory limit.
-- Retrieved document text is sent to the configured model provider when `LLM_MODE=gemini`.
+- Retrieved document text is sent to the configured model provider when `LLM_MODE` is `openai` or `gemini`.
 - No rate limiting.
 
 ## Reporting

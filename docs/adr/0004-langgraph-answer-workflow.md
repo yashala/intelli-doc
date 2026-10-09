@@ -11,8 +11,8 @@ a recorded reason when a gate fails.
 - LangGraph `StateGraph` for the workflow. The branches and the bounded retry are explicit
   edges, every node is traced as its own span when LangSmith is enabled, and the state carries
   timings and token usage.
-- LangChain `ChatGoogleGenerativeAI` with `with_structured_output(AnswerDraft, include_raw=True)`
-  for the Gemini call, so the answer is schema-checked and token usage stays available.
+- LangChain chat models (`ChatOpenAI`, `ChatGoogleGenerativeAI`) with
+  `with_structured_output(AnswerDraft, include_raw=True)`, so the answer is schema-checked and token usage stays available.
 - No LangChain document loaders, text splitters or vector store: they would discard the
   per-element page provenance, or conflict with ADR 0001.
 

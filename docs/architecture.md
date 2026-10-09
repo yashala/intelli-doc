@@ -15,7 +15,7 @@ flowchart LR
         P[(pages)]
         C[(chunks: vector + tsvector)]
     end
-    GEM[Gemini API]
+    GEM[OpenAI or Gemini API]
     LS[LangSmith, optional]
 
     UI -- upload PDF --> ING
@@ -26,7 +26,7 @@ flowchart LR
     WF -. traces .-> LS
 ```
 
-The browser never holds a model key. All model calls go from the API container to Gemini;
+The browser never holds a model key. All model calls go from the API container to the configured provider;
 only the retrieved chunks for a question leave the machine.
 
 ## Ingestion

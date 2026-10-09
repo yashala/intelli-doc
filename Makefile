@@ -48,7 +48,7 @@ eval-offline: db
 	EVAL_DATABASE_URL=$(EVAL_DB) $(API) python evals/run.py --llm offline
 
 eval-online: db
-	EVAL_DATABASE_URL=$(EVAL_DB) $(API) python evals/run.py --llm gemini --judge
+	EVAL_DATABASE_URL=$(EVAL_DB) $(API) python evals/run.py --llm openai --judge --max-cost-usd 5
 
 report:
 	$(API) python evals/report.py
