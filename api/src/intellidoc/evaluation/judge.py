@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel, Field
 
 from intellidoc.answer.models import Usage, _usage
@@ -20,14 +21,9 @@ class Verdict(BaseModel):
     unsupported_claims: list[str] = Field(default_factory=list)
 
 
-class GeminiJudge:
-    def __init__(self, model: str, api_key: str) -> None:
-        from langchain_google_genai import ChatGoogleGenerativeAI
-
-        self.name = model
-        chat = ChatGoogleGenerativeAI(
-            model=model, google_api_key=api_key, temperature=0.0, max_retries=2
-        )
+class ChatJudge:
+    def __init__(self, chat: BaseChatModel, name: str) -> None:
+        self.name = name
         self._structured = chat.with_structured_output(Verdict, include_raw=True)
 
     def judge(

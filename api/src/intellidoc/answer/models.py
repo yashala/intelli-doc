@@ -3,16 +3,17 @@
 `ExtractiveModel` is deterministic and offline: it answers with the source sentence that
 shares the most content words with the question. It exists so CI can exercise the whole
 workflow without network access; its scores are a floor, not a measure of an LLM.
-`GeminiModel` uses LangChain's Gemini adapter with structured output.
+`ChatAnswerModel` wraps any LangChain chat model (Gemini or OpenAI) with structured output.
 """
 
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Protocol
+from typing import Literal, Protocol
 
-from pydantic import BaseModel, Field
+from langchain_core.language_models import BaseChatModel
+from pydantic import BaseModel, Field, SecretStr
 
 PROMPT_VERSION = "answer-v1"
 
@@ -115,15 +116,33 @@ class ExtractiveModel:
         return " ".join(sorted(content_words(question))), Usage()
 
 
-class GeminiModel:
-    def __init__(self, model: str, api_key: str, temperature: float = 0.0) -> None:
+Provider = Literal["gemini", "openai"]
+
+
+def make_chat(provider: Provider, model: str, api_key: str) -> BaseChatModel:
+    """Build a LangChain chat model. Reasoning models (gpt-5*) only accept the default
+    temperature, so temperature 0 is set only where the provider allows it."""
+    if provider == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
 
-        self.name = model
-        self._chat = ChatGoogleGenerativeAI(
-            model=model, google_api_key=api_key, temperature=temperature, max_retries=2
+        return ChatGoogleGenerativeAI(
+            model=model, google_api_key=api_key, temperature=0.0, max_retries=2
         )
-        self._structured = self._chat.with_structured_output(AnswerDraft, include_raw=True)
+    from langchain_openai import ChatOpenAI
+
+    temperature = None if model.startswith(("gpt-5", "o")) else 0.0
+    return ChatOpenAI(
+        model=model, api_key=SecretStr(api_key), temperature=temperature, max_retries=2
+    )
+
+
+class ChatAnswerModel:
+    """Answer model over any LangChain chat model that supports structured output."""
+
+    def __init__(self, chat: BaseChatModel, name: str) -> None:
+        self.name = name
+        self._chat = chat
+        self._structured = chat.with_structured_output(AnswerDraft, include_raw=True)
 
     def answer(self, question: str, sources: list[Source]) -> ModelOutput:
         messages = [

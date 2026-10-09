@@ -29,15 +29,16 @@ from intellidoc.answer.graph import AnswerWorkflow
 from intellidoc.answer.models import (
     PROMPT_VERSION,
     AnswerModel,
+    ChatAnswerModel,
     ExtractiveModel,
-    GeminiModel,
     ModelOutput,
     Source,
     Usage,
+    make_chat,
 )
 from intellidoc.db import apply_schema, create_pool
 from intellidoc.embeddings import FastEmbedder
-from intellidoc.evaluation.judge import JUDGE_VERSION, GeminiJudge
+from intellidoc.evaluation.judge import JUDGE_VERSION, ChatJudge
 from intellidoc.evaluation.metrics import (
     ChunkRef,
     Question,
@@ -116,6 +117,7 @@ def environment(args: argparse.Namespace, model: str) -> dict[str, Any]:
         "langgraph",
         "langchain-core",
         "langchain-google-genai",
+        "langchain-openai",
         "fastembed",
         "pdfplumber",
         "pypdfium2",
@@ -178,9 +180,8 @@ def build_model(llm: str) -> AnswerModel:
     settings = get_settings()
     if llm == "offline":
         return ExtractiveModel()
-    if settings.google_api_key is None:
-        raise SystemExit("GOOGLE_API_KEY is required for --llm gemini")
-    return GeminiModel(settings.answer_model, settings.google_api_key.get_secret_value())
+    chat = make_chat(llm, settings.answer_model, settings.api_key(llm))  # type: ignore[arg-type]
+    return ChatAnswerModel(chat, settings.answer_model)
 
 
 class Throttle:
@@ -289,7 +290,7 @@ def main() -> None:
     # LangSmith reads LANGSMITH_* from the process environment, not from pydantic settings.
     load_dotenv(ROOT / ".env")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--llm", choices=["offline", "gemini"], default="offline")
+    parser.add_argument("--llm", choices=["offline", "gemini", "openai"], default="offline")
     parser.add_argument("--configs", nargs="*", help="experiment names (default: all)")
     parser.add_argument("--split", choices=["dev", "test", "all"], default="all")
     parser.add_argument("--repeat", type=int, default=1, help="runs per question for latency")
@@ -319,9 +320,10 @@ def main() -> None:
         model = ThrottledModel(model, throttle)
     judge = None
     if args.judge:
-        if settings.google_api_key is None:
-            raise SystemExit("--judge needs GOOGLE_API_KEY")
-        judge = GeminiJudge(settings.judge_model, settings.google_api_key.get_secret_value())
+        if args.llm == "offline":
+            raise SystemExit("--judge needs an online provider")
+        chat = make_chat(args.llm, settings.judge_model, settings.api_key(args.llm))
+        judge = ChatJudge(chat, settings.judge_model)
 
     if args.resume:
         out = Path(args.resume)
@@ -416,7 +418,7 @@ def main() -> None:
 
 def run_question(
     workflow: AnswerWorkflow,
-    judge: GeminiJudge | None,
+    judge: ChatJudge | None,
     throttle: Throttle,
     conn: psycopg.Connection,
     q: Question,

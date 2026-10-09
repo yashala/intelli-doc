@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 
 from intellidoc import logging as json_logging
 from intellidoc.answer.graph import AnswerWorkflow
-from intellidoc.answer.models import AnswerModel, ExtractiveModel, GeminiModel
+from intellidoc.answer.models import AnswerModel, ChatAnswerModel, ExtractiveModel, make_chat
 from intellidoc.db import create_pool
 from intellidoc.embeddings import FastEmbedder
 from intellidoc.ingest.service import ingest
@@ -49,11 +49,10 @@ class Services:
 
 
 def build_model(settings: Settings) -> AnswerModel:
-    if settings.llm_mode == "gemini":
-        if settings.google_api_key is None:
-            raise RuntimeError("LLM_MODE=gemini requires GOOGLE_API_KEY")
-        return GeminiModel(settings.answer_model, settings.google_api_key.get_secret_value())
-    return ExtractiveModel()
+    if settings.llm_mode == "offline":
+        return ExtractiveModel()
+    chat = make_chat(settings.llm_mode, settings.answer_model, settings.api_key(settings.llm_mode))
+    return ChatAnswerModel(chat, settings.answer_model)
 
 
 @asynccontextmanager

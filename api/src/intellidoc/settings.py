@@ -18,10 +18,18 @@ class Settings(BaseSettings):
     max_upload_mb: int = 25
 
     # "offline" uses a deterministic extractive model; no network or keys needed.
-    llm_mode: Literal["offline", "gemini"] = "offline"
+    llm_mode: Literal["offline", "gemini", "openai"] = "offline"
     google_api_key: SecretStr | None = None
-    answer_model: str = "gemini-2.5-flash"
-    judge_model: str = "gemini-2.5-pro"
+    openai_api_key: SecretStr | None = None
+    answer_model: str = "gpt-4.1-mini"
+    judge_model: str = "gpt-5-mini"
+
+    def api_key(self, provider: str) -> str:
+        key = self.google_api_key if provider == "gemini" else self.openai_api_key
+        if key is None:
+            name = "GOOGLE_API_KEY" if provider == "gemini" else "OPENAI_API_KEY"
+            raise RuntimeError(f"{name} is required for provider {provider}")
+        return key.get_secret_value()
 
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     reranker_model: str = "Xenova/ms-marco-MiniLM-L-6-v2"
