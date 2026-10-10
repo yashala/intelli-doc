@@ -1,0 +1,7 @@
+name: c1-fixed-dense
+description: "Baseline: the original app's 1000/200 character window, dense top-k."
+chunker: fixed
+mode: dense
+k: 5
+candidates: 20
+min_similarity: 0.0

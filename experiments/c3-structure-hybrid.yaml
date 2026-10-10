@@ -1,0 +1,7 @@
+name: c3-structure-hybrid
+description: "C2 plus Postgres full-text search, fused with reciprocal rank fusion."
+chunker: structure
+mode: hybrid
+k: 5
+candidates: 20
+min_similarity: 0.0

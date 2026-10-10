@@ -1,0 +1,10 @@
+# USD per 1M tokens, standard paid tier. Output includes reasoning/thinking tokens.
+# Gemini: https://ai.google.dev/gemini-api/docs/pricing (checked 2026-10-08)
+# OpenAI: https://developers.openai.com/api/docs/pricing (checked 2026-10-09)
+gemini-2.5-flash: {input: 0.30, output: 2.50}
+gemini-2.5-flash-lite: {input: 0.10, output: 0.40}
+gpt-4.1-mini: {input: 0.40, output: 1.60}
+gpt-4.1-nano: {input: 0.10, output: 0.40}
+gpt-5-mini: {input: 0.25, output: 2.00}
+gpt-5-nano: {input: 0.05, output: 0.40}
+offline-extractive: {input: 0.0, output: 0.0}

@@ -1,0 +1,61 @@
+{
+  "seed": 20261008,
+  "documents": [
+    {
+      "doc_id": "water_2025",
+      "file": "water_2025.pdf",
+      "synthetic": true,
+      "scanned": false,
+      "sha256": "93eadaafd646d5724b95c8d54a7e30ca543f46e6572859fc5812a3f96df73832"
+    },
+    {
+      "doc_id": "water_2024",
+      "file": "water_2024.pdf",
+      "synthetic": true,
+      "scanned": false,
+      "sha256": "40bcacdaca7cde1a1bfab19a0770e7bd2a5f91e35108a56c471f56ff5d13ef65"
+    },
+    {
+      "doc_id": "transit_tables",
+      "file": "transit_tables.pdf",
+      "synthetic": true,
+      "scanned": false,
+      "sha256": "0514a71a4281b63f423d55e0b7fe88e6c2e58d1394f4c3513ee19bb6d570886a"
+    },
+    {
+      "doc_id": "solar_figures",
+      "file": "solar_figures.pdf",
+      "synthetic": true,
+      "scanned": false,
+      "sha256": "867fd8581b98cdef71796b5ecaa99bfa9df0e33f59a6a9133aaeed8960d02e59"
+    },
+    {
+      "doc_id": "ferry_bulletin",
+      "file": "ferry_bulletin.pdf",
+      "synthetic": true,
+      "scanned": false,
+      "sha256": "ef85b923449f20c95beb0c4f830f0d06dbf02e26355e5051101541b609a6a1ad"
+    },
+    {
+      "doc_id": "vendor_guide",
+      "file": "vendor_guide.pdf",
+      "synthetic": true,
+      "scanned": false,
+      "sha256": "5b71604adadef82d2c173f33d5d047897f4b1a6eca1ebc1ce10908c983a1cb86"
+    },
+    {
+      "doc_id": "clinic_memo_scanned",
+      "file": "clinic_memo_scanned.pdf",
+      "synthetic": true,
+      "scanned": true,
+      "sha256": "5d7fc094851e7efee4164842903df9e90b5e62f659ae1a4d8239fddb3f687da4"
+    },
+    {
+      "doc_id": "library_scanned",
+      "file": "library_scanned.pdf",
+      "synthetic": true,
+      "scanned": true,
+      "sha256": "f5cbe64868f6bb30483ffa1930431d3f5400f04243358872b3e274d23af8824e"
+    }
+  ]
+}

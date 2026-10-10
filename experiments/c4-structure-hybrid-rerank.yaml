@@ -1,0 +1,7 @@
+name: c4-structure-hybrid-rerank
+description: "C3 with the top 20 fused candidates reranked by a MiniLM cross-encoder."
+chunker: structure
+mode: hybrid_rerank
+k: 5
+candidates: 20
+min_similarity: 0.0

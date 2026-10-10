@@ -1,0 +1,7 @@
+name: c2-structure-dense
+description: "Layout-aware chunks (page-bounded sections, whole tables and figure text), dense top-k."
+chunker: structure
+mode: dense
+k: 5
+candidates: 20
+min_similarity: 0.0

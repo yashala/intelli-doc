@@ -1,0 +1,749 @@
+{
+  "c1-fixed-dense": {
+    "questions": 85,
+    "answerable": 69,
+    "unanswerable": 16,
+    "evidence_hit_rate": 0.913,
+    "page_hit_rate": 0.942,
+    "mrr": 0.8036,
+    "answer_accuracy": 0.8986,
+    "citation_precision": 0.9167,
+    "citation_hit_rate": 0.9552,
+    "supported_rate": 1.0,
+    "false_refusal_rate": 0.029,
+    "correct_refusal_rate": 0.6875,
+    "injection_followed_rate": 0.0,
+    "failures": {
+      "retrieval_miss": 6,
+      "wrong_answer": 2,
+      "missed_refusal": 5
+    },
+    "judge_grounded_rate": 0.9701,
+    "latency_ms": {
+      "total": {
+        "p50": 881.1,
+        "p95": 2019.7,
+        "n": 85
+      },
+      "retrieve": {
+        "p50": 34.4,
+        "p95": 68.6,
+        "n": 100
+      },
+      "generate": {
+        "p50": 722.9,
+        "p95": 1242.8,
+        "n": 100
+      },
+      "rewrite": {
+        "p50": 536.7,
+        "p95": 995.3,
+        "n": 15
+      }
+    },
+    "usage": {
+      "input_tokens": 141474,
+      "output_tokens": 3317,
+      "calls": 115
+    },
+    "judge_usage": {
+      "input_tokens": 37497,
+      "output_tokens": 20276,
+      "calls": 72
+    },
+    "cost_usd": 0.1653,
+    "by_category": {
+      "image": {
+        "questions": 6,
+        "answerable": 6,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 1.0,
+        "answer_accuracy": 0.8333,
+        "citation_precision": 1.0,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "wrong_answer": 1
+        }
+      },
+      "injection": {
+        "questions": 4,
+        "answerable": 4,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 1.0,
+        "answer_accuracy": 0.75,
+        "citation_precision": 1.0,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": 0.0,
+        "failures": {
+          "wrong_answer": 1
+        }
+      },
+      "mixed": {
+        "questions": 9,
+        "answerable": 9,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 0.9167,
+        "answer_accuracy": 1.0,
+        "citation_precision": 0.9167,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {}
+      },
+      "native": {
+        "questions": 18,
+        "answerable": 18,
+        "unanswerable": 0,
+        "evidence_hit_rate": 0.8889,
+        "page_hit_rate": 0.9444,
+        "mrr": 0.7917,
+        "answer_accuracy": 0.9444,
+        "citation_precision": 0.9444,
+        "citation_hit_rate": 0.9444,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "retrieval_miss": 2
+        }
+      },
+      "scanned": {
+        "questions": 19,
+        "answerable": 19,
+        "unanswerable": 0,
+        "evidence_hit_rate": 0.8947,
+        "page_hit_rate": 0.8947,
+        "mrr": 0.7412,
+        "answer_accuracy": 0.8947,
+        "citation_precision": 0.8426,
+        "citation_hit_rate": 0.9444,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0526,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "retrieval_miss": 2
+        }
+      },
+      "table": {
+        "questions": 13,
+        "answerable": 13,
+        "unanswerable": 0,
+        "evidence_hit_rate": 0.8462,
+        "page_hit_rate": 0.9231,
+        "mrr": 0.6821,
+        "answer_accuracy": 0.8462,
+        "citation_precision": 0.9167,
+        "citation_hit_rate": 0.9167,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0769,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "retrieval_miss": 2
+        }
+      },
+      "unanswerable": {
+        "questions": 16,
+        "answerable": 0,
+        "unanswerable": 16,
+        "evidence_hit_rate": null,
+        "page_hit_rate": null,
+        "mrr": null,
+        "answer_accuracy": null,
+        "citation_precision": null,
+        "citation_hit_rate": null,
+        "supported_rate": null,
+        "false_refusal_rate": null,
+        "correct_refusal_rate": 0.6875,
+        "injection_followed_rate": null,
+        "failures": {
+          "missed_refusal": 5
+        }
+      }
+    },
+    "config": {
+      "name": "c1-fixed-dense",
+      "description": "Baseline: the original app's 1000/200 character window, dense top-k.",
+      "chunker": "fixed",
+      "mode": "dense",
+      "k": 5,
+      "candidates": 20,
+      "min_similarity": 0.0
+    }
+  },
+  "c2-structure-dense": {
+    "questions": 85,
+    "answerable": 69,
+    "unanswerable": 16,
+    "evidence_hit_rate": 0.913,
+    "page_hit_rate": 0.9275,
+    "mrr": 0.72,
+    "answer_accuracy": 0.8986,
+    "citation_precision": 0.9394,
+    "citation_hit_rate": 0.9545,
+    "supported_rate": 1.0,
+    "false_refusal_rate": 0.0435,
+    "correct_refusal_rate": 0.9375,
+    "injection_followed_rate": 0.0,
+    "failures": {
+      "retrieval_miss": 6,
+      "wrong_answer": 2,
+      "missed_refusal": 1
+    },
+    "judge_grounded_rate": 0.9848,
+    "latency_ms": {
+      "total": {
+        "p50": 861.2,
+        "p95": 1956.2,
+        "n": 85
+      },
+      "retrieve": {
+        "p50": 29.4,
+        "p95": 88.2,
+        "n": 105
+      },
+      "generate": {
+        "p50": 668.3,
+        "p95": 1067.2,
+        "n": 105
+      },
+      "rewrite": {
+        "p50": 535.5,
+        "p95": 1314.3,
+        "n": 20
+      }
+    },
+    "usage": {
+      "input_tokens": 82863,
+      "output_tokens": 3126,
+      "calls": 125
+    },
+    "judge_usage": {
+      "input_tokens": 21973,
+      "output_tokens": 14319,
+      "calls": 67
+    },
+    "cost_usd": 0.1273,
+    "by_category": {
+      "image": {
+        "questions": 6,
+        "answerable": 6,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 0.875,
+        "answer_accuracy": 0.8333,
+        "citation_precision": 1.0,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "wrong_answer": 1
+        }
+      },
+      "injection": {
+        "questions": 4,
+        "answerable": 4,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 1.0,
+        "answer_accuracy": 0.75,
+        "citation_precision": 1.0,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": 0.0,
+        "failures": {
+          "wrong_answer": 1
+        }
+      },
+      "mixed": {
+        "questions": 9,
+        "answerable": 9,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 1.0,
+        "answer_accuracy": 1.0,
+        "citation_precision": 0.9444,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {}
+      },
+      "native": {
+        "questions": 18,
+        "answerable": 18,
+        "unanswerable": 0,
+        "evidence_hit_rate": 0.8889,
+        "page_hit_rate": 0.8889,
+        "mrr": 0.6519,
+        "answer_accuracy": 0.8889,
+        "citation_precision": 1.0,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.1111,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "retrieval_miss": 2
+        }
+      },
+      "scanned": {
+        "questions": 19,
+        "answerable": 19,
+        "unanswerable": 0,
+        "evidence_hit_rate": 0.7895,
+        "page_hit_rate": 0.8421,
+        "mrr": 0.5763,
+        "answer_accuracy": 0.8421,
+        "citation_precision": 0.8333,
+        "citation_hit_rate": 0.8333,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0526,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "retrieval_miss": 4
+        }
+      },
+      "table": {
+        "questions": 13,
+        "answerable": 13,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 0.6731,
+        "answer_accuracy": 1.0,
+        "citation_precision": 0.9615,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {}
+      },
+      "unanswerable": {
+        "questions": 16,
+        "answerable": 0,
+        "unanswerable": 16,
+        "evidence_hit_rate": null,
+        "page_hit_rate": null,
+        "mrr": null,
+        "answer_accuracy": null,
+        "citation_precision": null,
+        "citation_hit_rate": null,
+        "supported_rate": null,
+        "false_refusal_rate": null,
+        "correct_refusal_rate": 0.9375,
+        "injection_followed_rate": null,
+        "failures": {
+          "missed_refusal": 1
+        }
+      }
+    },
+    "config": {
+      "name": "c2-structure-dense",
+      "description": "Layout-aware chunks (page-bounded sections, whole tables and figure text), dense top-k.",
+      "chunker": "structure",
+      "mode": "dense",
+      "k": 5,
+      "candidates": 20,
+      "min_similarity": 0.0
+    }
+  },
+  "c3-structure-hybrid": {
+    "questions": 85,
+    "answerable": 69,
+    "unanswerable": 16,
+    "evidence_hit_rate": 0.942,
+    "page_hit_rate": 0.942,
+    "mrr": 0.7874,
+    "answer_accuracy": 0.9275,
+    "citation_precision": 0.9403,
+    "citation_hit_rate": 0.9701,
+    "supported_rate": 1.0,
+    "false_refusal_rate": 0.029,
+    "correct_refusal_rate": 1.0,
+    "injection_followed_rate": 0.0,
+    "failures": {
+      "wrong_answer": 2,
+      "retrieval_miss": 4
+    },
+    "judge_grounded_rate": 1.0,
+    "latency_ms": {
+      "total": {
+        "p50": 883.5,
+        "p95": 2226.9,
+        "n": 85
+      },
+      "retrieve": {
+        "p50": 39.3,
+        "p95": 720.9,
+        "n": 103
+      },
+      "generate": {
+        "p50": 705.6,
+        "p95": 1079.0,
+        "n": 103
+      },
+      "rewrite": {
+        "p50": 567.4,
+        "p95": 736.5,
+        "n": 18
+      }
+    },
+    "usage": {
+      "input_tokens": 99081,
+      "output_tokens": 3113,
+      "calls": 121
+    },
+    "judge_usage": {
+      "input_tokens": 22849,
+      "output_tokens": 14028,
+      "calls": 67
+    },
+    "cost_usd": 0.1287,
+    "by_category": {
+      "image": {
+        "questions": 6,
+        "answerable": 6,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 0.8889,
+        "answer_accuracy": 0.8333,
+        "citation_precision": 1.0,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "wrong_answer": 1
+        }
+      },
+      "injection": {
+        "questions": 4,
+        "answerable": 4,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 0.875,
+        "answer_accuracy": 0.75,
+        "citation_precision": 1.0,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": 0.0,
+        "failures": {
+          "wrong_answer": 1
+        }
+      },
+      "mixed": {
+        "questions": 9,
+        "answerable": 9,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 1.0,
+        "answer_accuracy": 1.0,
+        "citation_precision": 0.9259,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {}
+      },
+      "native": {
+        "questions": 18,
+        "answerable": 18,
+        "unanswerable": 0,
+        "evidence_hit_rate": 0.9444,
+        "page_hit_rate": 0.9444,
+        "mrr": 0.8241,
+        "answer_accuracy": 0.9444,
+        "citation_precision": 1.0,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0556,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "retrieval_miss": 1
+        }
+      },
+      "scanned": {
+        "questions": 19,
+        "answerable": 19,
+        "unanswerable": 0,
+        "evidence_hit_rate": 0.8947,
+        "page_hit_rate": 0.8947,
+        "mrr": 0.7018,
+        "answer_accuracy": 0.8947,
+        "citation_precision": 0.8704,
+        "citation_hit_rate": 0.9444,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0526,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "retrieval_miss": 2
+        }
+      },
+      "table": {
+        "questions": 13,
+        "answerable": 13,
+        "unanswerable": 0,
+        "evidence_hit_rate": 0.9231,
+        "page_hit_rate": 0.9231,
+        "mrr": 0.641,
+        "answer_accuracy": 1.0,
+        "citation_precision": 0.9231,
+        "citation_hit_rate": 0.9231,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "retrieval_miss": 1
+        }
+      },
+      "unanswerable": {
+        "questions": 16,
+        "answerable": 0,
+        "unanswerable": 16,
+        "evidence_hit_rate": null,
+        "page_hit_rate": null,
+        "mrr": null,
+        "answer_accuracy": null,
+        "citation_precision": null,
+        "citation_hit_rate": null,
+        "supported_rate": null,
+        "false_refusal_rate": null,
+        "correct_refusal_rate": 1.0,
+        "injection_followed_rate": null,
+        "failures": {}
+      }
+    },
+    "config": {
+      "name": "c3-structure-hybrid",
+      "description": "C2 plus Postgres full-text search, fused with reciprocal rank fusion.",
+      "chunker": "structure",
+      "mode": "hybrid",
+      "k": 5,
+      "candidates": 20,
+      "min_similarity": 0.0
+    }
+  },
+  "c4-structure-hybrid-rerank": {
+    "questions": 85,
+    "answerable": 69,
+    "unanswerable": 16,
+    "evidence_hit_rate": 0.971,
+    "page_hit_rate": 0.9855,
+    "mrr": 0.8447,
+    "answer_accuracy": 0.9565,
+    "citation_precision": 0.93,
+    "citation_hit_rate": 0.971,
+    "supported_rate": 1.0,
+    "false_refusal_rate": 0.0,
+    "correct_refusal_rate": 0.8125,
+    "injection_followed_rate": 0.0,
+    "failures": {
+      "wrong_answer": 2,
+      "missed_refusal": 3,
+      "retrieval_miss": 2
+    },
+    "judge_grounded_rate": 0.971,
+    "latency_ms": {
+      "total": {
+        "p50": 3734.6,
+        "p95": 13805.1,
+        "n": 85
+      },
+      "retrieve": {
+        "p50": 2688.6,
+        "p95": 7353.6,
+        "n": 98
+      },
+      "generate": {
+        "p50": 766.2,
+        "p95": 1233.0,
+        "n": 98
+      },
+      "rewrite": {
+        "p50": 586.2,
+        "p95": 10327.1,
+        "n": 13
+      }
+    },
+    "usage": {
+      "input_tokens": 84719,
+      "output_tokens": 3134,
+      "calls": 111
+    },
+    "judge_usage": {
+      "input_tokens": 25009,
+      "output_tokens": 17103,
+      "calls": 72
+    },
+    "cost_usd": 0.137,
+    "by_category": {
+      "image": {
+        "questions": 6,
+        "answerable": 6,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 1.0,
+        "answer_accuracy": 0.8333,
+        "citation_precision": 1.0,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "wrong_answer": 1
+        }
+      },
+      "injection": {
+        "questions": 4,
+        "answerable": 4,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 1.0,
+        "answer_accuracy": 0.75,
+        "citation_precision": 1.0,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": 0.0,
+        "failures": {
+          "wrong_answer": 1
+        }
+      },
+      "mixed": {
+        "questions": 9,
+        "answerable": 9,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 1.0,
+        "answer_accuracy": 1.0,
+        "citation_precision": 0.9259,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {}
+      },
+      "native": {
+        "questions": 18,
+        "answerable": 18,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 0.8426,
+        "answer_accuracy": 1.0,
+        "citation_precision": 1.0,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {}
+      },
+      "scanned": {
+        "questions": 19,
+        "answerable": 19,
+        "unanswerable": 0,
+        "evidence_hit_rate": 0.8947,
+        "page_hit_rate": 0.9474,
+        "mrr": 0.7544,
+        "answer_accuracy": 0.9474,
+        "citation_precision": 0.807,
+        "citation_hit_rate": 0.8947,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {
+          "retrieval_miss": 2
+        }
+      },
+      "table": {
+        "questions": 13,
+        "answerable": 13,
+        "unanswerable": 0,
+        "evidence_hit_rate": 1.0,
+        "page_hit_rate": 1.0,
+        "mrr": 0.7526,
+        "answer_accuracy": 1.0,
+        "citation_precision": 0.9615,
+        "citation_hit_rate": 1.0,
+        "supported_rate": 1.0,
+        "false_refusal_rate": 0.0,
+        "correct_refusal_rate": null,
+        "injection_followed_rate": null,
+        "failures": {}
+      },
+      "unanswerable": {
+        "questions": 16,
+        "answerable": 0,
+        "unanswerable": 16,
+        "evidence_hit_rate": null,
+        "page_hit_rate": null,
+        "mrr": null,
+        "answer_accuracy": null,
+        "citation_precision": null,
+        "citation_hit_rate": null,
+        "supported_rate": null,
+        "false_refusal_rate": null,
+        "correct_refusal_rate": 0.8125,
+        "injection_followed_rate": null,
+        "failures": {
+          "missed_refusal": 3
+        }
+      }
+    },
+    "config": {
+      "name": "c4-structure-hybrid-rerank",
+      "description": "C3 with the top 20 fused candidates reranked by a MiniLM cross-encoder.",
+      "chunker": "structure",
+      "mode": "hybrid_rerank",
+      "k": 5,
+      "candidates": 20,
+      "min_similarity": 0.0
+    }
+  }
+}

@@ -1,0 +1,48 @@
+services:
+  db:
+    image: pgvector/pgvector:0.8.1-pg16
+    environment:
+      POSTGRES_USER: intellidoc
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-intellidoc}
+      POSTGRES_DB: intellidoc
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U intellidoc -d intellidoc"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build: ./api
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql://intellidoc:${POSTGRES_PASSWORD:-intellidoc}@db:5432/intellidoc
+      ARTIFACTS_DIR: /artifacts
+      CORS_ORIGINS: '["http://localhost:8080"]'
+    volumes:
+      - uploads:/data
+      - models:/cache
+      - ./artifacts:/artifacts:ro
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:
+  models:

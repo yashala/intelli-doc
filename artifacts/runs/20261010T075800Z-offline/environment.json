@@ -1,0 +1,310 @@
+{
+  "timestamp": "2026-10-10T07:58:00+00:00",
+  "git_commit": "dac2a1beac7de5971224e4b7f294de8faf3b460f",
+  "git_dirty": false,
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu": "Apple M1",
+  "cpu_count": 8,
+  "memory_gb": 8.0,
+  "python": "3.12.14",
+  "tesseract": "tesseract 5.5.3",
+  "packages": {
+    "langgraph": "1.2.14",
+    "langchain-core": "1.6.8",
+    "langchain-google-genai": "4.4.0",
+    "langchain-openai": "1.7.0",
+    "fastembed": "0.9.0",
+    "pdfplumber": "0.11.10",
+    "pypdfium2": "5.14.0",
+    "pytesseract": "0.3.13",
+    "psycopg": "3.3.6",
+    "pgvector": "0.5.0",
+    "onnxruntime": "1.30.0"
+  },
+  "llm": "offline",
+  "answer_model": "offline-extractive",
+  "judge_model": null,
+  "prompt_version": "answer-v1",
+  "judge_version": null,
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "reranker_model": "Xenova/ms-marco-MiniLM-L-6-v2",
+  "memory_at_start": {
+    "swap": "total = 12288.00M  used = 11744.19M  free = 543.81M  (encrypted)",
+    "docker_containers": [
+      "agent-evaluation-lab-web-1 7.379MiB / 3.827GiB",
+      "agent-evaluation-lab-api-1 76.2MiB / 3.827GiB",
+      "agent-evaluation-lab-db-1 55.97MiB / 3.827GiB",
+      "intelli-doc-web-1 7.422MiB / 3.827GiB",
+      "intelli-doc-api-1 625.3MiB / 3.827GiB",
+      "intelli-doc-db-1 70.99MiB / 3.827GiB",
+      "etl-sqlserver 867.1MiB / 3.827GiB"
+    ]
+  },
+  "split": "all",
+  "repeats": 1,
+  "corpus_manifest": {
+    "seed": 20261008,
+    "documents": [
+      {
+        "doc_id": "water_2025",
+        "file": "water_2025.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "93eadaafd646d5724b95c8d54a7e30ca543f46e6572859fc5812a3f96df73832"
+      },
+      {
+        "doc_id": "water_2024",
+        "file": "water_2024.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "40bcacdaca7cde1a1bfab19a0770e7bd2a5f91e35108a56c471f56ff5d13ef65"
+      },
+      {
+        "doc_id": "transit_tables",
+        "file": "transit_tables.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "0514a71a4281b63f423d55e0b7fe88e6c2e58d1394f4c3513ee19bb6d570886a"
+      },
+      {
+        "doc_id": "solar_figures",
+        "file": "solar_figures.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "867fd8581b98cdef71796b5ecaa99bfa9df0e33f59a6a9133aaeed8960d02e59"
+      },
+      {
+        "doc_id": "ferry_bulletin",
+        "file": "ferry_bulletin.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "ef85b923449f20c95beb0c4f830f0d06dbf02e26355e5051101541b609a6a1ad"
+      },
+      {
+        "doc_id": "vendor_guide",
+        "file": "vendor_guide.pdf",
+        "synthetic": true,
+        "scanned": false,
+        "sha256": "5b71604adadef82d2c173f33d5d047897f4b1a6eca1ebc1ce10908c983a1cb86"
+      },
+      {
+        "doc_id": "clinic_memo_scanned",
+        "file": "clinic_memo_scanned.pdf",
+        "synthetic": true,
+        "scanned": true,
+        "sha256": "5d7fc094851e7efee4164842903df9e90b5e62f659ae1a4d8239fddb3f687da4"
+      },
+      {
+        "doc_id": "library_scanned",
+        "file": "library_scanned.pdf",
+        "synthetic": true,
+        "scanned": true,
+        "sha256": "f5cbe64868f6bb30483ffa1930431d3f5400f04243358872b3e274d23af8824e"
+      }
+    ]
+  },
+  "real_sources": {
+    "retrieved": "2026-10-08",
+    "documents": [
+      {
+        "doc_id": "irs_p501_2025",
+        "file": "irs_p501_2025.pdf",
+        "title": "IRS Publication 501 (2025): Dependents, Standard Deduction, and Filing Information",
+        "url": "https://www.irs.gov/pub/irs-pdf/p501.pdf",
+        "publisher": "Internal Revenue Service",
+        "rights": "U.S. Government work, not subject to copyright in the U.S. (17 U.S.C. 105)",
+        "notes": "The URL is updated each tax year; the committed copy is the 2025 edition (Last-Modified 2026-02-05). Three-column layout with ruled tables.",
+        "sha256": "288b62a4917f3bc3df0bade7a22c23a8ae648ba9eb5086df5b8b50e881148ff6"
+      },
+      {
+        "doc_id": "nasa_tn_d233",
+        "file": "nasa_tn_d233.pdf",
+        "title": "NASA TN D-233: Determination of Azimuth Angle at Burnout for Placing a Satellite over a Selected Earth Position (Skopinski and Johnson, 1960)",
+        "url": "https://ntrs.nasa.gov/api/citations/19980227091/downloads/19980227091.pdf",
+        "publisher": "NASA Technical Reports Server",
+        "rights": "U.S. Government work, not subject to copyright in the U.S. (17 U.S.C. 105)",
+        "notes": "36-page scan; every page is a full-page image with a legacy OCR text layer.",
+        "sha256": "cdf51b23eab45d745cf45ab75786188da5ffe27a056acd2b5fe11b4121a106ac"
+      }
+    ]
+  },
+  "ingest": {
+    "clinic_memo_scanned": {
+      "pages": 3,
+      "ocr_pages": 3,
+      "chunks": {
+        "fixed": 1,
+        "structure": 3
+      },
+      "timings_ms": {
+        "parse": 6213.207334003528,
+        "embed_fixed": 736.6480000055162,
+        "embed_structure": 65.22458299878053
+      }
+    },
+    "ferry_bulletin": {
+      "pages": 2,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 1,
+        "structure": 5
+      },
+      "timings_ms": {
+        "parse": 623.9309999946272,
+        "embed_fixed": 50.43679200753104,
+        "embed_structure": 94.1983750090003
+      }
+    },
+    "library_scanned": {
+      "pages": 2,
+      "ocr_pages": 2,
+      "chunks": {
+        "fixed": 1,
+        "structure": 4
+      },
+      "timings_ms": {
+        "parse": 5167.258375004167,
+        "embed_fixed": 46.24791699461639,
+        "embed_structure": 68.61274999391753
+      }
+    },
+    "solar_figures": {
+      "pages": 3,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 1,
+        "structure": 7
+      },
+      "timings_ms": {
+        "parse": 904.266416997416,
+        "embed_fixed": 42.39324999798555,
+        "embed_structure": 90.07216700410936
+      }
+    },
+    "transit_tables": {
+      "pages": 3,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 1,
+        "structure": 6
+      },
+      "timings_ms": {
+        "parse": 34.33187500922941,
+        "embed_fixed": 250.91608399816323,
+        "embed_structure": 372.66741700295825
+      }
+    },
+    "vendor_guide": {
+      "pages": 2,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 1,
+        "structure": 2
+      },
+      "timings_ms": {
+        "parse": 40.77875000075437,
+        "embed_fixed": 55.840750006609596,
+        "embed_structure": 64.6117919968674
+      }
+    },
+    "water_2024": {
+      "pages": 4,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 2,
+        "structure": 4
+      },
+      "timings_ms": {
+        "parse": 42.612249992089346,
+        "embed_fixed": 160.11729200545233,
+        "embed_structure": 148.8737079926068
+      }
+    },
+    "water_2025": {
+      "pages": 4,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 2,
+        "structure": 4
+      },
+      "timings_ms": {
+        "parse": 75.07337500283029,
+        "embed_fixed": 210.45145799871534,
+        "embed_structure": 135.49000000057276
+      }
+    },
+    "irs_p501_2025": {
+      "pages": 31,
+      "ocr_pages": 0,
+      "chunks": {
+        "fixed": 259,
+        "structure": 427
+      },
+      "timings_ms": {
+        "parse": 7797.165249998216,
+        "embed_fixed": 45939.59249999898,
+        "embed_structure": 68297.64429100032
+      }
+    },
+    "nasa_tn_d233": {
+      "pages": 36,
+      "ocr_pages": 36,
+      "chunks": {
+        "fixed": 37,
+        "structure": 54
+      },
+      "timings_ms": {
+        "parse": 87787.58074999496,
+        "embed_fixed": 51265.42949999566,
+        "embed_structure": 18985.832165999454
+      }
+    }
+  },
+  "rpm_limit": null,
+  "complete": true,
+  "records": "340/340",
+  "cost_usd_total": 0.0,
+  "pricing": {
+    "gemini-2.5-flash": {
+      "input": 0.3,
+      "output": 2.5
+    },
+    "gemini-2.5-flash-lite": {
+      "input": 0.1,
+      "output": 0.4
+    },
+    "gpt-4.1-mini": {
+      "input": 0.4,
+      "output": 1.6
+    },
+    "gpt-4.1-nano": {
+      "input": 0.1,
+      "output": 0.4
+    },
+    "gpt-5-mini": {
+      "input": 0.25,
+      "output": 2.0
+    },
+    "gpt-5-nano": {
+      "input": 0.05,
+      "output": 0.4
+    },
+    "offline-extractive": {
+      "input": 0.0,
+      "output": 0.0
+    }
+  },
+  "memory_at_end": {
+    "swap": "total = 14336.00M  used = 13511.19M  free = 824.81M  (encrypted)",
+    "docker_containers": [
+      "agent-evaluation-lab-web-1 7.379MiB / 3.827GiB",
+      "agent-evaluation-lab-api-1 77.2MiB / 3.827GiB",
+      "agent-evaluation-lab-db-1 55.89MiB / 3.827GiB",
+      "intelli-doc-web-1 7.422MiB / 3.827GiB",
+      "intelli-doc-api-1 619.7MiB / 3.827GiB",
+      "intelli-doc-db-1 71.48MiB / 3.827GiB",
+      "etl-sqlserver 868MiB / 3.827GiB"
+    ]
+  }
+}
