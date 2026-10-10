@@ -26,7 +26,7 @@
 <rect x="259.0" y="20.0" width="12" height="220.0" fill="#b279a2"><title>c4-structure-hybrid-rerank mixed: 100.0%</title></rect>
 <text x="245.0" y="254" text-anchor="middle">mixed</text>
 <rect x="295.0" y="44.44200000000001" width="12" height="195.558" fill="#4c78a8"><title>c1-fixed-dense native: 88.9%</title></rect>
-<rect x="309.0" y="44.44200000000001" width="12" height="195.558" fill="#f58518"><title>c2-structure-dense native: 88.9%</title></rect>
+<rect x="309.0" y="56.67399999999998" width="12" height="183.32600000000002" fill="#f58518"><title>c2-structure-dense native: 83.3%</title></rect>
 <rect x="323.0" y="32.232" width="12" height="207.768" fill="#54a24b"><title>c3-structure-hybrid native: 94.4%</title></rect>
 <rect x="337.0" y="20.0" width="12" height="220.0" fill="#b279a2"><title>c4-structure-hybrid-rerank native: 100.0%</title></rect>
 <text x="323.0" y="254" text-anchor="middle">native</text>
@@ -35,7 +35,7 @@
 <rect x="401.0" y="43.166" width="12" height="196.834" fill="#54a24b"><title>c3-structure-hybrid scanned: 89.5%</title></rect>
 <rect x="415.0" y="54.738" width="12" height="185.262" fill="#b279a2"><title>c4-structure-hybrid-rerank scanned: 84.2%</title></rect>
 <text x="401.0" y="254" text-anchor="middle">scanned</text>
-<rect x="451.0" y="70.77600000000001" width="12" height="169.224" fill="#4c78a8"><title>c1-fixed-dense table: 76.9%</title></rect>
+<rect x="451.0" y="36.918000000000006" width="12" height="203.082" fill="#4c78a8"><title>c1-fixed-dense table: 92.3%</title></rect>
 <rect x="465.0" y="20.0" width="12" height="220.0" fill="#f58518"><title>c2-structure-dense table: 100.0%</title></rect>
 <rect x="479.0" y="36.918000000000006" width="12" height="203.082" fill="#54a24b"><title>c3-structure-hybrid table: 92.3%</title></rect>
 <rect x="493.0" y="20.0" width="12" height="220.0" fill="#b279a2"><title>c4-structure-hybrid-rerank table: 100.0%</title></rect>

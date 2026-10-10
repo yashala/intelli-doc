@@ -28,12 +28,12 @@ part. Definitions: [docs/evaluation.md](docs/evaluation.md).
 <!-- results:offline:start -->
 | Config | Evidence hit@5 | Page hit@5 | MRR | Answer acc. | Citation prec. | Supported | Judge grounded | False refusal | Correct refusal | Injection followed |
 |---|---|---|---|---|---|---|---|---|---|---|
-| c1-fixed-dense | 89.9% | 92.8% | 0.793 | 29.0% | 95.6% | 100.0% | n/a | 34.8% | 37.5% | 0.0% |
-| c2-structure-dense | 91.3% | 92.8% | 0.715 | 34.8% | 83.7% | 100.0% | n/a | 37.7% | 62.5% | 0.0% |
-| c3-structure-hybrid | 94.2% | 94.2% | 0.786 | 31.9% | 81.0% | 100.0% | n/a | 39.1% | 62.5% | 0.0% |
+| c1-fixed-dense | 92.8% | 94.2% | 0.802 | 29.0% | 95.6% | 100.0% | n/a | 34.8% | 37.5% | 0.0% |
+| c2-structure-dense | 89.9% | 91.3% | 0.715 | 33.3% | 87.5% | 100.0% | n/a | 42.0% | 62.5% | 0.0% |
+| c3-structure-hybrid | 94.2% | 94.2% | 0.774 | 31.9% | 78.6% | 100.0% | n/a | 39.1% | 62.5% | 0.0% |
 | c4-structure-hybrid-rerank | 95.7% | 97.1% | 0.794 | 33.3% | 83.3% | 100.0% | n/a | 39.1% | 62.5% | 0.0% |
 
-Run `20261008T203130Z-offline` on Apple M1 (8.0 GB). Full tables: [docs/results/latest-offline.md](docs/results/latest-offline.md).
+Run `20261010T075800Z-offline` on Apple M1 (8.0 GB). Full tables: [docs/results/latest-offline.md](docs/results/latest-offline.md).
 <!-- results:offline:end -->
 
 Online (OpenAI) results:
@@ -142,9 +142,12 @@ Recorded with dates in the engineering journal; numbers are in the run artifacts
   retrieval was the weakest configuration on scanned documents, below the fixed-window
   baseline. The cause was OCR noise (equation numbers, margin stamps) being promoted to
   headings, which split the NASA report into tiny chunks dominated by the title prefix.
-  After fixing heading detection (`20261008T203130Z-offline`) structure + dense moved ahead of
-  the baseline overall but still trails it on the scanned category. This fix was found by
-  inspecting results on all splits, so post-fix numbers are not a clean held-out measurement.
+  After fixing heading detection (`20261008T203130Z-offline`) it moved ahead of the baseline
+  overall; after the later title fix (`20261010T075800Z-offline`) it is behind it again overall
+  and on scanned documents, while hybrid retrieval over the same chunks matches or beats the
+  baseline. Structure-aware chunks alone were not a reliable win; they needed full-text search
+  alongside. These fixes were found by inspecting results on all splits, so the numbers are not
+  a clean held-out measurement.
 - Reranking 20 candidates with the MiniLM cross-encoder took about one second per query when
   measured in isolation on the development machine, against tens of milliseconds for the
   other retrieval modes (latency table in the results).
@@ -155,9 +158,9 @@ Recorded with dates in the engineering journal; numbers are in the run artifacts
   fixed-window chunks. Giving the judge the same titled sources as the answer model (judge-v2)
   removed that effect. Both verdicts are kept in the run's records.
 
-- The results above were measured before a title fix: IRS Publication 501 was indexed under
-  its printer proof mark ("AH XSL/XML") as the title, which is prepended to every chunk for
-  embedding. They have not been re-measured since.
+- The online (OpenAI) results above were measured before a title fix: IRS Publication 501 was
+  indexed under its printer proof mark ("AH XSL/XML") as the title, which is prepended to every
+  chunk for embedding. The offline results were re-measured after the fix; the online ones were not.
 
 Unresolved: string-match scoring can credit the right value from the wrong table row; see
 [docs/limitations.md](docs/limitations.md).

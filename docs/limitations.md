@@ -22,6 +22,8 @@
 
 ## Parsing and OCR
 - OCR is English-only (Tesseract `eng`) at 300 dpi, about 2.7 s per page on an M1.
+- OCR output depends on the Tesseract version: 5.5.3 (macOS) and 5.3.4 (Ubuntu CI) produced
+  different text on the NASA scan, changing 2 of 340 question-configs in the offline benchmark.
 - Rotated pages (90/180 degrees), handwriting, forms with checkboxes, and nested or
   borderless tables in native PDFs are not handled specially.
 - Charts are only understood through text that OCR can read inside them; bar heights, lines and

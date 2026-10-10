@@ -6,7 +6,10 @@
 The baseline is written from a measured run, never edited by hand. A metric fails the gate if
 it drops more than TOLERANCE below the baseline (or, for rates where lower is better, rises
 more than TOLERANCE above it). The offline reader is deterministic, so any change is caused
-by code, data or dependency changes.
+by code, data or dependency changes, with one known exception: Tesseract versions read the
+scanned NASA report slightly differently (5.5.3 on macOS vs 5.3.4 on Ubuntu changed 2 of 340
+question-configs, about 1.4 points each). The tolerance covers that; the baseline is taken from
+the CI platform, where the gate runs.
 """
 
 from __future__ import annotations
