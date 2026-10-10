@@ -17,7 +17,7 @@ chunking/retrieval configurations on 85 questions over synthetic and public-doma
 | Offline benchmark (deterministic extractive reader), CI regression gate | Implemented, results below |
 | OpenAI answer model and LLM groundedness judge | Implemented; full run below (Gemini adapter implemented, not benchmarked) |
 | LangSmith tracing | Verified: workflow and judge runs arrive tagged with run id, config and prompt version |
-| FastAPI service, React UI, Docker Compose | Implemented; API and UI tested; compose stack not yet built end to end |
+| FastAPI service, React UI, Docker Compose | Implemented and verified end to end through nginx (upload, OCR, ask, citations, page images) |
 
 ## Results
 
@@ -137,6 +137,10 @@ Recorded with dates in the engineering journal; numbers are in the run artifacts
   Point's 2025 figure" were judged unsupported, and the judge appeared to prefer the large
   fixed-window chunks. Giving the judge the same titled sources as the answer model (judge-v2)
   removed that effect. Both verdicts are kept in the run's records.
+
+- The results above were measured before a title fix: IRS Publication 501 was indexed under
+  its printer proof mark ("AH XSL/XML") as the title, which is prepended to every chunk for
+  embedding. They have not been re-measured since.
 
 Unresolved: string-match scoring can credit the right value from the wrong table row; see
 [docs/limitations.md](docs/limitations.md).

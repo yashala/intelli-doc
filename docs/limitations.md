@@ -42,6 +42,9 @@
 - No authentication, authorisation or multi-tenancy. Intended for single-user local use.
 - Uploaded PDFs are parsed in-process with no sandbox or resource limits beyond file size.
 - No rate limiting, no request timeouts on the model call beyond the client library's retries.
+- Uploads are processed synchronously. On the 8 GB development machine (Docker, heavy swap) the
+  31-page IRS publication took 97 s (16 s parse, 80 s embedding) and the 36-page NASA scan 158 s.
+  A production version needs a background ingestion queue.
 
 ## What production use would still require
 Authentication and per-tenant isolation, sandboxed parsing workers with time and memory limits,
