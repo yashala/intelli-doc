@@ -54,5 +54,5 @@ report:
 	$(API) python evals/report.py
 
 audit:
-	cd api && uv export --frozen --no-hashes --no-dev > /tmp/intellidoc-req.txt && uv run pip-audit -r /tmp/intellidoc-req.txt
+	cd api && uv export --frozen --no-hashes --no-dev --no-emit-project > /tmp/intellidoc-req.txt && uv run pip-audit -r /tmp/intellidoc-req.txt
 	cd web && npm audit --omit=dev
