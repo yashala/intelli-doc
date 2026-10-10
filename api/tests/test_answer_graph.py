@@ -26,8 +26,11 @@ class FakeRetriever:
         self.responses = list(responses)
         self.queries: list[str] = []
 
-    def search(self, conn: Any, query: str, config: RetrievalConfig) -> list[Retrieved]:
+    def search(
+        self, conn: Any, query: str, config: RetrievalConfig, doc_ids: list[str] | None = None
+    ) -> list[Retrieved]:
         self.queries.append(query)
+        self.doc_ids = doc_ids
         return self.responses[min(len(self.queries), len(self.responses)) - 1]
 
 
@@ -125,3 +128,10 @@ def test_extractive_model_declines_when_overlap_is_low() -> None:
     assert (
         not ExtractiveModel().answer("What is the capital of Australia?", sources).draft.answerable
     )
+
+
+def test_document_filter_is_passed_to_retrieval() -> None:
+    retriever = FakeRetriever([hit(1, "Probe L12 cost 7,450 dollars.", [2])])
+    model = ScriptedModel(AnswerDraft(answerable=True, answer="7,450", citations=["S1"]))
+    workflow(retriever, model).run("Cost?", doc_ids=["doc1"])
+    assert retriever.doc_ids == ["doc1"]

@@ -68,3 +68,24 @@ def test_lexical_search_with_only_stopwords_returns_nothing(
 ) -> None:
     ingest(conn, memo, embedder)
     assert lexical(conn, "what is the", embedder.embed_query("x"), "structure", 5) == []
+
+
+@pytest.mark.parametrize("mode", ["dense", "hybrid"])
+def test_document_filter_restricts_results(
+    conn: psycopg.Connection, embedder: FastEmbedder, memo: Path, tmp_path: Path, mode: str
+) -> None:
+    other = f.build(
+        tmp_path / "other.pdf",
+        [
+            f.para("Ferry Bulletin", "Title"),
+            f.para("The ultrasound probe exhibit opens at the pier."),
+        ],
+    )
+    memo_id = ingest(conn, memo, embedder).doc_id
+    other_id = ingest(conn, other, embedder).doc_id
+    config = RetrievalConfig(chunker="structure", mode=mode, k=5)  # type: ignore[arg-type]
+    retriever = Retriever(embedder)
+    unfiltered = retriever.search(conn, "ultrasound probe", config)
+    assert {r.doc_id for r in unfiltered} == {memo_id, other_id}
+    filtered = retriever.search(conn, "ultrasound probe", config, doc_ids=[other_id])
+    assert filtered and {r.doc_id for r in filtered} == {other_id}

@@ -57,6 +57,7 @@ class AnswerResult:
 
 class State(TypedDict, total=False):
     question: str
+    doc_ids: list[str] | None
     query: str
     queries: list[str]
     attempt: int
@@ -102,10 +103,13 @@ class AnswerWorkflow:
         g.add_edge("refuse", END)
         return g.compile()
 
-    def run(self, question: str, tags: list[str] | None = None) -> AnswerResult:
+    def run(
+        self, question: str, tags: list[str] | None = None, doc_ids: list[str] | None = None
+    ) -> AnswerResult:
         state: State = self.graph.invoke(
             {
                 "question": question,
+                "doc_ids": doc_ids,
                 "query": question,
                 "queries": [question],
                 "attempt": 0,
@@ -149,7 +153,9 @@ class AnswerWorkflow:
     def _retrieve(self, state: State) -> State:
         start = time.perf_counter()
         with self.pool.connection() as conn:
-            retrieved = self.retriever.search(conn, state["query"], self.config)
+            retrieved = self.retriever.search(
+                conn, state["query"], self.config, state.get("doc_ids")
+            )
         reason: RefusalReason | None = None
         if not retrieved:
             reason = "no_documents"

@@ -100,3 +100,17 @@ def test_question_not_covered_by_documents_is_refused(client: TestClient, memo_p
 def test_ask_validates_input(client: TestClient) -> None:
     assert client.post("/ask", json={"question": ""}).status_code == 422
     assert client.post("/ask", json={"question": "x", "mode": "magic"}).status_code == 422
+
+
+def test_ask_can_be_limited_to_selected_documents(client: TestClient, memo_pdf: bytes) -> None:
+    doc_id = client.post(
+        "/documents", files={"file": ("memo.pdf", memo_pdf, "application/pdf")}
+    ).json()["doc_id"]
+    body = client.post(
+        "/ask", json={"question": "Who replaced the ultrasound probe L12?", "doc_ids": ["nope"]}
+    ).json()
+    assert body["refused"] is True
+    body = client.post(
+        "/ask", json={"question": "Who replaced the ultrasound probe L12?", "doc_ids": [doc_id]}
+    ).json()
+    assert body["refused"] is False

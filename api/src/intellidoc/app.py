@@ -182,6 +182,7 @@ class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=1000)
     chunker: Literal["fixed", "structure"] | None = None
     mode: Mode | None = None
+    doc_ids: list[str] | None = Field(default=None, max_length=100)
 
 
 class CitationOut(BaseModel):
@@ -211,7 +212,7 @@ def ask(body: AskRequest, svc: Svc) -> AskResponse:
         chunker=body.chunker or svc.settings.default_chunker,
         mode=body.mode or svc.settings.default_mode,
     )
-    result = svc.workflow(config).run(body.question.strip())
+    result = svc.workflow(config).run(body.question.strip(), doc_ids=body.doc_ids or None)
     log.info(
         "answered",
         extra={

@@ -58,6 +58,7 @@ _DENSE = (
     _SELECT
     + """
 WHERE c.chunker = %(chunker)s
+  AND (%(docs)s::text[] IS NULL OR c.doc_id = ANY(%(docs)s::text[]))
 ORDER BY c.embedding <=> %(q)s
 LIMIT %(limit)s
 """
@@ -75,6 +76,7 @@ LATERAL (
             to_tsvector('english', %(text)s))) AS l), ' | ') AS terms
 ) t
 WHERE c.chunker = %(chunker)s AND t.terms <> ''
+  AND (%(docs)s::text[] IS NULL OR c.doc_id = ANY(%(docs)s::text[]))
   AND c.tsv @@ t.terms::tsquery
 ORDER BY ts_rank_cd(c.tsv, t.terms::tsquery) DESC, c.id
 LIMIT %(limit)s
@@ -88,14 +90,26 @@ def _rows(conn: Connection, sql: str, params: dict[str, Any]) -> list[Retrieved]
         return [Retrieved(**row) for row in cur.fetchall()]
 
 
-def dense(conn: Connection, query_vector: Vector, chunker: str, limit: int) -> list[Retrieved]:
-    return _rows(conn, _DENSE, {"q": query_vector, "chunker": chunker, "limit": limit})
+def dense(
+    conn: Connection,
+    query_vector: Vector,
+    chunker: str,
+    limit: int,
+    doc_ids: list[str] | None = None,
+) -> list[Retrieved]:
+    params = {"q": query_vector, "chunker": chunker, "limit": limit, "docs": doc_ids}
+    return _rows(conn, _DENSE, params)
 
 
 def lexical(
-    conn: Connection, text: str, query_vector: Vector, chunker: str, limit: int
+    conn: Connection,
+    text: str,
+    query_vector: Vector,
+    chunker: str,
+    limit: int,
+    doc_ids: list[str] | None = None,
 ) -> list[Retrieved]:
-    params = {"q": query_vector, "text": text, "chunker": chunker, "limit": limit}
+    params = {"q": query_vector, "text": text, "chunker": chunker, "limit": limit, "docs": doc_ids}
     return _rows(conn, _LEXICAL, params)
 
 
@@ -132,18 +146,25 @@ class Retriever:
         self.embedder = embedder
         self.reranker = reranker
 
-    def search(self, conn: Connection, query: str, config: RetrievalConfig) -> list[Retrieved]:
+    def search(
+        self,
+        conn: Connection,
+        query: str,
+        config: RetrievalConfig,
+        doc_ids: list[str] | None = None,
+    ) -> list[Retrieved]:
+        """Search all documents, or only `doc_ids` when given."""
         vector = self.embedder.embed_query(query)
         if config.mode == "dense":
-            results = dense(conn, vector, config.chunker, config.k)
+            results = dense(conn, vector, config.chunker, config.k, doc_ids)
             for r in results:
                 r.score = r.similarity
             return results
 
         fused = reciprocal_rank_fusion(
             {
-                "dense": dense(conn, vector, config.chunker, config.candidates),
-                "lexical": lexical(conn, query, vector, config.chunker, config.candidates),
+                "dense": dense(conn, vector, config.chunker, config.candidates, doc_ids),
+                "lexical": lexical(conn, query, vector, config.chunker, config.candidates, doc_ids),
             }
         )
         if config.mode == "hybrid_rerank":
