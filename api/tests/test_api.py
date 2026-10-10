@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from reportlab.platypus import PageBreak
 
+from intellidoc.db import apply_schema
 from intellidoc.settings import get_settings
 from tests import pdf_factory as f
 
@@ -22,6 +23,7 @@ def client(
     monkeypatch.setenv("MAX_UPLOAD_MB", "1")
     get_settings.cache_clear()
     with psycopg.connect(database_url) as conn:
+        apply_schema(conn)  # a fresh database has no tables until something creates them
         conn.execute("TRUNCATE documents CASCADE")
     from intellidoc.app import app
 
