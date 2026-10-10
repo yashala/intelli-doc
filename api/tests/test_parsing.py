@@ -140,3 +140,16 @@ def test_wrapped_bold_run_in_head_is_not_a_heading(tmp_path: Path) -> None:
         ],
     )
     assert [k for _, k, _ in texts(path)] == ["text"]
+
+
+def test_title_is_the_largest_type_on_page_one(tmp_path: Path) -> None:
+    # Regression: IRS Pub 501 starts with small bold printer marks that were taken as the title.
+    path = f.build(
+        tmp_path / "t.pdf",
+        [
+            f.para("<b>AH XSL/XML</b>"),
+            f.para("Dependents and Filing", "Title"),
+            f.para("This publication explains who must file a return and who is a dependent."),
+        ],
+    )
+    assert parse_pdf(path).title == "Dependents and Filing"

@@ -49,6 +49,7 @@ def parse_pdf(path: Path) -> ParsedDocument:
     pages: list[PageInfo] = []
     elements: list[Element] = []
     rendered = pdfium.PdfDocument(str(path))
+    cover_title: str | None = None
     try:
         with pdfplumber.open(path) as pdf:
             body_size = _body_font_size(pdf.pages)
@@ -61,11 +62,14 @@ def parse_pdf(path: Path) -> ParsedDocument:
                     pages.append(PageInfo(number, "ocr", native_chars, confidence))
                 else:
                     page_elements = _parse_native_page(page, number, body_size, rendered[index])
+                    if number == 1:
+                        cover_title = _largest_type(page, body_size)
                     pages.append(PageInfo(number, "native", native_chars))
                 elements.extend(page_elements)
     finally:
         rendered.close()
-    return ParsedDocument(title=_title(elements, path), pages=pages, elements=elements)
+    title = cover_title or _title(elements, path)
+    return ParsedDocument(title=title, pages=pages, elements=elements)
 
 
 def _is_scanned(page: Any, native_chars: int) -> bool:
@@ -285,6 +289,30 @@ def _ocr_text(image: Image.Image) -> tuple[str, float | None]:
         confidences.append(conf)
     text = "\n".join(" ".join(words) for _, words in sorted(lines.items()))
     return text, statistics.fmean(confidences) if confidences else None
+
+
+def _largest_type(page: Any, body_size: float) -> str | None:
+    """Words set in the largest type on the page, in reading order.
+
+    The first heading is not a reliable title: IRS Pub 501 starts with printer proof marks
+    ("AH XSL/XML"), and its cover title shares lines with a table of contents.
+    """
+    words = page.extract_words(extra_attrs=["size"])
+    if not words:
+        return None
+    largest = max(round(w["size"], 1) for w in words)
+    if largest < body_size * 1.2:
+        return None
+    candidates = [w for w in words if round(w["size"], 1) == largest]
+    candidates.sort(key=lambda w: (round(w["top"] / 4), w["x0"]))
+    # Keep the first contiguous run of lines; same-size section headings further down the page
+    # (ferry bulletin) are not part of the title.
+    title = [candidates[0]]
+    for word in candidates[1:]:
+        if word["top"] - title[-1]["top"] > 1.8 * largest:
+            break
+        title.append(word)
+    return " ".join(w["text"] for w in title)[:200]
 
 
 def _title(elements: list[Element], path: Path) -> str:
