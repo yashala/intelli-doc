@@ -1,6 +1,8 @@
 // Typed client for the IntelliDoc API. All requests go through the /api proxy; the browser
 // never talks to a model provider and never holds a key.
 
+export type Mode = "dense" | "hybrid" | "hybrid_rerank";
+
 export interface DocumentInfo {
   id: string;
   filename: string;
@@ -54,20 +56,27 @@ export interface LatencyStat {
   n: number;
 }
 
-export interface ConfigSummary {
+export interface MetricSummary {
   questions: number;
+  answerable: number;
   evidence_hit_rate: number | null;
   page_hit_rate: number | null;
   mrr: number | null;
   answer_accuracy: number | null;
   citation_precision: number | null;
   supported_rate: number | null;
-  judge_grounded_rate: number | null;
+  judge_grounded_rate?: number | null;
   false_refusal_rate: number | null;
   correct_refusal_rate: number | null;
   injection_followed_rate: number | null;
   failures: Record<string, number>;
+}
+
+export interface ConfigSummary extends MetricSummary {
   latency_ms: Record<string, LatencyStat>;
+  by_category: Record<string, MetricSummary>;
+  usage: { input_tokens: number; output_tokens: number; calls: number };
+  cost_usd?: number;
   config: { name: string; description: string };
 }
 
@@ -112,12 +121,29 @@ export const api = {
     form.append("file", file);
     return request<IngestResult>("/documents", { method: "POST", body: form });
   },
-  ask: (question: string, mode?: string) =>
+  ask: (question: string, mode: Mode, docIds: string[] = []) =>
     request<AskResponse>("/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(mode ? { question, mode } : { question }),
+      body: JSON.stringify(docIds.length ? { question, mode, doc_ids: docIds } : { question, mode }),
     }),
   results: () => request<BenchmarkRun[]>("/results"),
   pageImageUrl: (docId: string, page: number) => `/api/documents/${docId}/pages/${page}.png`,
 };
+
+export const MODES: { value: Mode; label: string; hint: string }[] = [
+  { value: "hybrid", label: "Hybrid", hint: "Dense vectors + Postgres full text, fused" },
+  { value: "dense", label: "Dense", hint: "Embedding similarity only" },
+  { value: "hybrid_rerank", label: "Hybrid + rerank", hint: "Cross-encoder reorders the top 20; slower" },
+];
+
+export const REFUSAL_REASONS: Record<string, string> = {
+  insufficient_evidence: "The retrieved passages did not contain the answer, even after rewriting the query.",
+  low_retrieval_similarity: "No passage was similar enough to the question.",
+  no_valid_citation: "The model's answer did not cite any retrieved passage, so it was discarded.",
+  no_documents: "No matching documents are indexed.",
+};
+
+export function totalMs(timings: Record<string, number>): number {
+  return Object.values(timings).reduce((a, b) => a + b, 0);
+}
