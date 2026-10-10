@@ -145,7 +145,14 @@ def upload_document(file: UploadFile, svc: Svc) -> dict[str, Any]:
     Path(tmp.name).replace(path)
     try:
         with svc.pool.connection() as conn:
-            result = ingest(conn, path, svc.embedder, filename=file.filename or path.name)
+            # Only the chunker the API serves; the benchmark ingests every chunker itself.
+            result = ingest(
+                conn,
+                path,
+                svc.embedder,
+                chunkers=[svc.settings.default_chunker],
+                filename=file.filename or path.name,
+            )
     except Exception as exc:
         log.exception("ingest failed", extra={"doc_id": digest})
         raise HTTPException(422, "The PDF could not be parsed") from exc

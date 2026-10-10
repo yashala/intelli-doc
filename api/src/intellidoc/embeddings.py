@@ -35,7 +35,10 @@ class FastEmbedder:
         return TextEmbedding(self.name)
 
     def embed_passages(self, texts: list[str]) -> list[Vector]:
-        return [np.asarray(v, dtype=np.float32) for v in self._model.embed(texts, batch_size=32)]
+        # Small batches: every text in a batch is padded to the longest one, and chunk lengths
+        # vary a lot (measured ~2x throughput at 8 vs 32 on IRS Pub 501 chunks).
+        vectors = self._model.embed(texts, batch_size=8)
+        return [np.asarray(v, dtype=np.float32) for v in vectors]
 
     def embed_query(self, text: str) -> Vector:
         prefix = BGE_QUERY_INSTRUCTION if "bge" in self.name.lower() else ""
